@@ -1,4 +1,4 @@
-# Protocol Interface - The Deed Protocol Frontend UI Kit
+# Protocol Interface - The Deed Protocol UI Kit
 
 This repository contains the **Frontend UI Kit** for The Deed Protocol. It serves as an open design system and a forkable white-label UI solution, featuring prebuilt components, fully designed pages, and an extensive style guide. This UI kit is designed to help developers and designers rapidly build consistent, accessible, and visually appealing frontend applications that interact seamlessly with the protocol.
 
