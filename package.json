@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@deed3labs/protocolsdk": "Deed3Labs/ProtocolSDK",
+    "@deed3labs/protocolsdk": "github:Deed3Labs/ProtocolSDK#main",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-label": "^2.0.2",
