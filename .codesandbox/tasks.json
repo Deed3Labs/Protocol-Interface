@@ -1,10 +1,13 @@
 {
+  // These tasks will run in order when initializing your CodeSandbox project.
   "setupTasks": [
     {
-      "name": "Clean install",
-      "command": "rm -rf node_modules package-lock.json && npm install"
+      "command": "rm -rf node_modules package-lock.json && npm install",
+      "name": "Clean install"
     }
   ],
+
+  // These tasks can be run from CodeSandbox. Running one will open a log in the app.
   "tasks": {
     "dev": {
       "name": "Development",
@@ -15,4 +18,4 @@
       }
     }
   }
-} 
+}
