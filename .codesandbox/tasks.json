@@ -1,18 +1,14 @@
 {
   "setupTasks": [
     {
-      "name": "Configure npm",
-      "command": "npm config set @deed3labs:registry https://npm.pkg.github.com"
-    },
-    {
-      "name": "Install Dependencies",
-      "command": "npm install"
+      "name": "Clean install",
+      "command": "rm -rf node_modules package-lock.json && npm install"
     }
   ],
   "tasks": {
     "dev": {
       "name": "Development",
-      "command": "npm run dev",
+      "command": "npx next dev",
       "runAtStart": true,
       "preview": {
         "port": 3000

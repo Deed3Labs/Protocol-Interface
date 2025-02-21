@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ProtocolSDK } from '@deed3labs/protocolsdk';
+import { ProtocolSDK } from '../lib/mockProtocolSDK';
 
 export function useProtocolSDK() {
   const [sdk, setSDK] = useState<ProtocolSDK | null>(null);
