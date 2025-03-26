@@ -82,6 +82,21 @@ const MINT_WITH_METADATA_ABI = [
   },
 ] as const;
 
+// Add retry utility function
+const retry = async <T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delay = 1000
+): Promise<T> => {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries <= 0) throw error;
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return retry(fn, retries - 1, delay * 1.5);
+  }
+};
+
 export function useDeedNFT() {
   const publicClient = usePublicClient();
 
@@ -127,7 +142,7 @@ export function useDeedNFT() {
 
       // If we only got contract info or no NFTs, try getting NFTs using contract calls
       if (!nfts.nfts || nfts.nfts.length === 0) {
-        const supply = await publicClient.readContract({
+        const supply = await retry(() => publicClient.readContract({
           address: CONTRACT_ADDRESS,
           abi: [{
             name: 'totalSupply',
@@ -137,108 +152,144 @@ export function useDeedNFT() {
             outputs: [{ type: 'uint256' }],
           }],
           functionName: 'totalSupply',
-        });
+        }));
 
         if (!supply) return [];
 
-        // Fetch each NFT individually
+        // Process NFTs in smaller batches to avoid timeouts
         const tokenIds = Array.from({ length: Number(supply) }, (_, i) => i);
-        const deedPromises = tokenIds.map(async (tokenId) => {
-          try {
-            // Get owner
-            const owner = await publicClient.readContract({
-              address: CONTRACT_ADDRESS,
-              abi: [{
-                name: 'ownerOf',
-                type: 'function',
-                stateMutability: 'view',
-                inputs: [{ type: 'uint256', name: 'tokenId' }],
-                outputs: [{ type: 'address' }],
-              }],
-              functionName: 'ownerOf',
-              args: [BigInt(tokenId)],
-            });
+        const batchSize = 5;
+        const deeds: DeedNFT[] = [];
 
-            // Get metadata
-            const metadata = await publicClient.readContract({
-              address: CONTRACT_ADDRESS,
-              abi: [{
-                name: 'getDeedMetadata',
-                type: 'function',
-                stateMutability: 'view',
-                inputs: [{ type: 'uint256', name: 'tokenId' }],
-                outputs: [{ type: 'string' }],
-              }],
-              functionName: 'getDeedMetadata',
-              args: [BigInt(tokenId)],
-            });
+        for (let i = 0; i < tokenIds.length; i += batchSize) {
+          const batch = tokenIds.slice(i, i + batchSize);
+          const batchDeeds = await Promise.all(
+            batch.map(async (tokenId) => {
+              try {
+                // Get owner with retry
+                const owner = await retry(() => publicClient.readContract({
+                  address: CONTRACT_ADDRESS,
+                  abi: [{
+                    name: 'ownerOf',
+                    type: 'function',
+                    stateMutability: 'view',
+                    inputs: [{ type: 'uint256', name: 'tokenId' }],
+                    outputs: [{ type: 'address' }],
+                  }],
+                  functionName: 'ownerOf',
+                  args: [BigInt(tokenId)],
+                }));
 
-            // Parse metadata
-            const parsedMetadata = metadata ? JSON.parse(metadata as string) : {};
-            
-            const deed: DeedNFT = {
-              id: tokenId.toString(),
-              owner: owner as string,
-              description: parsedMetadata.description || '',
-              traits: parsedMetadata.attributes?.map((attr: AlchemyNftAttribute) => attr.value) || [],
-              location: parsedMetadata.name || '',
-              price: parsedMetadata.price || '0',
-              metadata: {
-                location: parsedMetadata.name || '',
-                price: parsedMetadata.price || '0',
+                // Get metadata with retry
+                const metadata = await retry(() => publicClient.readContract({
+                  address: CONTRACT_ADDRESS,
+                  abi: [{
+                    name: 'getDeedMetadata',
+                    type: 'function',
+                    stateMutability: 'view',
+                    inputs: [{ type: 'uint256', name: 'tokenId' }],
+                    outputs: [{ type: 'string' }],
+                  }],
+                  functionName: 'getDeedMetadata',
+                  args: [BigInt(tokenId)],
+                }));
+
+                // Parse metadata
+                const parsedMetadata = metadata ? JSON.parse(metadata as string) : {};
+                
+                const deed: DeedNFT = {
+                  id: tokenId.toString(),
+                  owner: owner as string,
+                  description: parsedMetadata.description || '',
+                  traits: parsedMetadata.attributes?.map((attr: AlchemyNftAttribute) => attr.value) || [],
+                  location: parsedMetadata.name || '',
+                  price: parsedMetadata.price || '0',
+                  metadata: {
+                    location: parsedMetadata.name || '',
+                    price: parsedMetadata.price || '0',
+                  }
+                };
+                return deed;
+              } catch (error) {
+                console.error(`Error fetching deed ${tokenId}:`, error);
+                return null;
               }
-            };
-            return deed;
-          } catch (error) {
-            console.error(`Error fetching deed ${tokenId}:`, error);
-            return null;
-          }
-        });
+            })
+          );
 
-        const deeds = (await Promise.all(deedPromises)).filter((deed): deed is DeedNFT => deed !== null);
+          deeds.push(...batchDeeds.filter((deed): deed is DeedNFT => deed !== null));
+          
+          // Add a small delay between batches
+          if (i + batchSize < tokenIds.length) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+
         return deeds;
       }
 
-      // If Alchemy returned NFTs, use that data
-      return Promise.all(nfts.nfts.map(async (nft) => {
-        // Extract traits from raw metadata if available
-        const traits = nft.raw?.metadata?.attributes?.map(attr => attr.value) || [];
+      // If Alchemy returned NFTs, process them in batches
+      const batchSize = 5;
+      const deeds: DeedNFT[] = [];
+
+      for (let i = 0; i < nfts.nfts.length; i += batchSize) {
+        const batch = nfts.nfts.slice(i, i + batchSize);
+        const batchDeeds = await Promise.all(
+          batch.map(async (nft) => {
+            try {
+              // Extract traits from raw metadata if available
+              const traits = nft.raw?.metadata?.attributes?.map(attr => attr.value) || [];
+              
+              // Use the name field as location since that's where the address is stored
+              const location = nft.name || nft.raw?.metadata?.name || '';
+              
+              // For now, we'll set a default price since it's not in the metadata
+              const price = '0';
+
+              // Get the owner with retry
+              const owner = await retry(() => publicClient.readContract({
+                address: CONTRACT_ADDRESS,
+                abi: [{
+                  name: 'ownerOf',
+                  type: 'function',
+                  stateMutability: 'view',
+                  inputs: [{ type: 'uint256', name: 'tokenId' }],
+                  outputs: [{ type: 'address' }],
+                }],
+                functionName: 'ownerOf',
+                args: [BigInt(nft.tokenId)],
+              }));
+
+              const deed: DeedNFT = {
+                id: nft.tokenId,
+                owner: owner as string,
+                description: nft.description || nft.raw?.metadata?.description || '',
+                traits,
+                location,
+                price,
+                metadata: {
+                  location,
+                  price,
+                }
+              };
+
+              return deed;
+            } catch (error) {
+              console.error(`Error processing NFT ${nft.tokenId}:`, error);
+              return null;
+            }
+          })
+        );
+
+        deeds.push(...batchDeeds.filter((deed): deed is DeedNFT => deed !== null));
         
-        // Use the name field as location since that's where the address is stored
-        const location = nft.name || nft.raw?.metadata?.name || '';
-        
-        // For now, we'll set a default price since it's not in the metadata
-        const price = '0';
+        // Add a small delay between batches
+        if (i + batchSize < nfts.nfts.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
 
-        // Get the owner from the contract
-        const owner = await publicClient.readContract({
-          address: CONTRACT_ADDRESS,
-          abi: [{
-            name: 'ownerOf',
-            type: 'function',
-            stateMutability: 'view',
-            inputs: [{ type: 'uint256', name: 'tokenId' }],
-            outputs: [{ type: 'address' }],
-          }],
-          functionName: 'ownerOf',
-          args: [BigInt(nft.tokenId)],
-        });
-
-        const deed: DeedNFT = {
-          id: nft.tokenId,
-          owner: owner as string,
-          description: nft.description || nft.raw?.metadata?.description || '',
-          traits,
-          location,
-          price,
-          metadata: {
-            location,
-            price,
-          }
-        };
-
-        return deed;
-      }));
+      return deeds;
     } catch (error) {
       console.error('Error fetching all deeds:', error);
       return [];
