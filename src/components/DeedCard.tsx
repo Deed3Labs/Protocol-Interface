@@ -25,6 +25,10 @@ export function DeedCard({ deed }: DeedCardProps) {
     latitude >= -85 && latitude <= 85 && 
     longitude >= -180 && longitude <= 180;
 
+  // Get first 3 traits
+  const displayTraits = deed.traits.slice(0, 3);
+  const remainingTraits = deed.traits.length - 3;
+
   return (
     <Card className="group relative overflow-hidden bg-background hover:shadow-xl transition-all duration-300 border border-border/50">
       {/* Image Container */}
@@ -85,7 +89,7 @@ export function DeedCard({ deed }: DeedCardProps) {
 
         {/* Traits */}
         <div className="flex flex-wrap gap-2">
-          {deed.traits.map((trait, index) => (
+          {displayTraits.map((trait, index) => (
             <Badge
               key={index}
               variant="secondary"
@@ -99,6 +103,11 @@ export function DeedCard({ deed }: DeedCardProps) {
               {trait}
             </Badge>
           ))}
+          {remainingTraits > 0 && (
+            <Badge variant="outline" className="bg-muted/50">
+              +{remainingTraits} more
+            </Badge>
+          )}
         </div>
       </div>
     </Card>

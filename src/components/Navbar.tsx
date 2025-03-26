@@ -1,27 +1,10 @@
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { Button } from "@/components/ui/button";
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import ClientOnly from './ClientOnly';
+import Link from 'next/link';
 import { ConnectWallet } from "@/components/ui/connect-wallet";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Navbar = () => {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
   const router = useRouter();
-
-  const handleConnect = () => {
-    const connector = connectors[0]; // MetaMask connector from config
-    if (connector) {
-      connect({ connector });
-    }
-  };
-
-  const shortenAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
 
   return (
     <nav className="border-b">
@@ -54,30 +37,7 @@ const Navbar = () => {
               </Link>
             </div>
           </div>
-          <ClientOnly>
-            <div>
-              {isConnected ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-muted-foreground">
-                    {shortenAddress(address || '')}
-                  </span>
-                  <Button
-                    variant="outline"
-                    onClick={() => disconnect()}
-                  >
-                    Disconnect
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={handleConnect}
-                >
-                  Connect Wallet
-                </Button>
-              )}
-            </div>
-          </ClientOnly>
-          <div className="ml-auto flex items-center space-x-4">
+          <div className="flex items-center space-x-4">
             <ThemeToggle />
             <ConnectWallet />
           </div>
