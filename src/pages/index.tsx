@@ -30,15 +30,27 @@ export default function Home() {
           throw new Error('Invalid response from getAllDeeds');
         }
 
-        const processedDeeds = fetchedDeeds.map(deed => ({
-          ...deed,
-          // Ensure we have a unique identifier for React keys
-          uniqueId: `${deed.contract?.address}-${deed.tokenId}`,
-          metadata: {
-            location: deed.name || deed.raw?.metadata?.name || `Deed #${deed.tokenId}`,
-            price: deed.raw?.metadata?.attributes?.find((attr: NFTAttribute) => attr.trait_type === "Price")?.value || "N/A",
-          },
-        }));
+        const processedDeeds = fetchedDeeds.map((deed, index) => {
+          // Debug log to see the structure of each deed
+          console.log(`Processing deed ${index}:`, deed);
+          
+          // Ensure we have valid identifiers
+          if (!deed.contract?.address || !deed.tokenId) {
+            console.warn(`Missing contract address or tokenId for deed ${index}:`, deed);
+          }
+
+          return {
+            ...deed,
+            // Use index as fallback if we don't have contract address or tokenId
+            uniqueId: deed.tokenId 
+              ? `${deed.contract?.address || 'unknown'}-${deed.tokenId}`
+              : `fallback-${index}`,
+            metadata: {
+              location: deed.name || deed.raw?.metadata?.name || `Deed #${deed.tokenId || index}`,
+              price: deed.raw?.metadata?.attributes?.find((attr: NFTAttribute) => attr.trait_type === "Price")?.value || "N/A",
+            },
+          };
+        });
 
         console.log('Processed deeds:', processedDeeds);
         setDeeds(processedDeeds);
@@ -51,7 +63,7 @@ export default function Home() {
     };
 
     fetchDeeds();
-  }, [getAllDeeds]); // Add getAllDeeds to dependency array
+  }, [getAllDeeds]);
 
   const handleMintClick = () => {
     router.push('/mint');
