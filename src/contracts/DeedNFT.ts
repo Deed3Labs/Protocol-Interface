@@ -1,6 +1,6 @@
 import { useContractRead, useContractWrite, usePublicClient } from 'wagmi';
 import { parseEther } from 'viem';
-import { Alchemy, Network, Nft, NftContractNftsResponse } from 'alchemy-sdk';
+import { Alchemy, Network } from 'alchemy-sdk';
 import { DeedNFT } from '@/types/deed';
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
@@ -68,6 +68,26 @@ export function useDeedNFT() {
     functionName: 'mintWithMetadata',
   });
 
+  const getAllDeeds = async () => {
+    try {
+      const nfts = await alchemy.nft.getNftsForContract(CONTRACT_ADDRESS, {
+        omitMetadata: false,
+      });
+      
+      return nfts.nfts.map((nft) => ({
+        id: nft.tokenId,
+        owner: nft.owners[0],
+        description: nft.description || '',
+        traits: nft.rawMetadata?.attributes?.map((attr: any) => attr.value) || [],
+        location: nft.rawMetadata?.location || '',
+        price: nft.rawMetadata?.price || '0',
+      }));
+    } catch (error) {
+      console.error('Error fetching all deeds:', error);
+      throw error;
+    }
+  };
+
   const getDeed = async (tokenId: string) => {
     try {
       const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId);
@@ -129,6 +149,7 @@ export function useDeedNFT() {
     mintWithMetadata: (location: string, price: string, traits: string[]) => mintWithMetadata({
       args: [location, parseEther(price), traits],
     }),
+    getAllDeeds,
     getDeed,
     getDeedTraits,
     getDeedMetadata,
