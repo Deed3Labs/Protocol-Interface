@@ -3,10 +3,11 @@ import { useDeedNFT } from '@/contracts/DeedNFT';
 import { DeedNFT } from '@/types/deed';
 import { DeedCard } from '@/components/DeedCard';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Home() {
-  const { getAllDeeds } = useDeedNFT();
+  const router = useRouter();
+  const { getAllDeeds, getDeedBalance } = useDeedNFT();
   const [deeds, setDeeds] = useState<DeedNFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +16,7 @@ export default function Home() {
     const fetchDeeds = async () => {
       try {
         setLoading(true);
+        setError(null);
         const fetchedDeeds = await getAllDeeds();
         setDeeds(fetchedDeeds.map(deed => ({
           ...deed,
@@ -25,19 +27,26 @@ export default function Home() {
         })));
       } catch (err) {
         console.error('Error fetching deeds:', err);
-        setError('Failed to fetch deeds. Please try again.');
+        setError('Failed to load deeds. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchDeeds();
-  }, [getAllDeeds]);
+  }, []); // Empty dependency array means this runs once on mount
+
+  const handleMintClick = () => {
+    router.push('/thin-mint');
+  };
 
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading deeds...</div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading Deeds...</h1>
+          <p className="text-gray-600">Please wait while we fetch your deeds.</p>
+        </div>
       </div>
     );
   }
@@ -45,8 +54,9 @@ export default function Home() {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-red-500 mb-4">{error}</div>
         <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Error</h1>
+          <p className="text-red-600 mb-4">{error}</p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
@@ -56,18 +66,15 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">All Deeds</h1>
-        <Link href="/mint">
-          <Button>Mint New Deed</Button>
-        </Link>
+        <h1 className="text-3xl font-bold">Your Deeds</h1>
+        <Button onClick={handleMintClick}>Mint New Deed</Button>
       </div>
 
       {deeds.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-gray-500 mb-4">No deeds found.</p>
-          <Link href="/mint">
-            <Button>Mint Your First Deed</Button>
-          </Link>
+        <div className="text-center py-12">
+          <h2 className="text-xl font-semibold mb-4">No Deeds Found</h2>
+          <p className="text-gray-600 mb-6">You haven't minted any deeds yet.</p>
+          <Button onClick={handleMintClick}>Mint Your First Deed</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
