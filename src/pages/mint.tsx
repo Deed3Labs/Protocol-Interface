@@ -1,6 +1,6 @@
 import { useAccount } from 'wagmi';
 import { useDeedNFT } from '../hooks/useDeedNFT';
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,6 +28,10 @@ const MintPage = () => {
     }
   };
 
+  const handleMetadataChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setMetadata(e.target.value);
+  };
+
   return (
     <main className="container mx-auto py-12">
       <Card className="max-w-3xl mx-auto">
@@ -52,7 +56,7 @@ const MintPage = () => {
               <Textarea
                 id="metadata"
                 value={metadata}
-                onChange={(e) => setMetadata(e.target.value)}
+                onChange={handleMetadataChange}
                 placeholder='{"name": "My Deed", "description": "A property deed", ...}'
                 rows={4}
               />
