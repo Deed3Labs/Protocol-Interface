@@ -99,7 +99,7 @@ export default function Home() {
   return (
     <div className="container mx-auto py-8">
       <h1 className="mb-8 text-3xl font-bold">Deed NFTs</h1>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {deeds.map((deed) => (
           <DeedCard key={deed.id.tokenId} deed={deed} />
         ))}
