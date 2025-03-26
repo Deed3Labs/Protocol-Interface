@@ -128,28 +128,13 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#141414]">
-      <CollectionHeader
-        name={collectionData.name}
-        isVerified={collectionData.isVerified}
-        creator={collectionData.creator}
-        stats={collectionData.stats}
-        bannerImage={collectionData.bannerImage}
-        logoImage={collectionData.logoImage}
-        chain={collectionData.chain}
-        category={collectionData.category}
-      />
-      <CollectionStats
-        floorPrice={collectionData.stats.floorPrice}
-        totalVolume={collectionData.stats.totalVolume}
-        volume24h={collectionData.stats.volume24h}
-        listed={collectionData.stats.listed}
-        owners={collectionData.stats.owners}
-      />
+    <main className="min-h-screen bg-transparent">
       <div className="px-4 md:px-6 lg:px-8">
         <div className="flex flex-col w-full min-w-0">
-          {/* Filter Toolbar */}
-          <FilterToolbar view={view} onViewChange={setView} />
+          {/* Filter Toolbar - Moved to top */}
+          <div className="sticky top-0 z-10 bg-[#141414] border-b border-border-1">
+            <FilterToolbar view={view} onViewChange={setView} />
+          </div>
 
           {/* Main Content */}
           <div className="mt-4">
