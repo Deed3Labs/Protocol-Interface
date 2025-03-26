@@ -13,9 +13,7 @@ const queryClient = new QueryClient()
 
 const config = createConfig({
   chains: [sepolia],
-  connectors: [
-    injected(),
-  ],
+  connectors: [injected()],
   transports: {
     [sepolia.id]: http(),
   },
@@ -25,11 +23,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-        >
+        <ThemeProvider attribute="class" defaultTheme="dark">
           <Layout>
             <Component {...pageProps} />
           </Layout>
