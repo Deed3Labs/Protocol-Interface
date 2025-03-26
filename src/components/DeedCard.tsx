@@ -1,6 +1,6 @@
 "use client"
 
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeedNFT } from "@/types/deed";
 import { BadgeCheck } from "lucide-react";
 import Image from "next/image";
@@ -101,57 +101,47 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
   }
 
   return (
-    <Link href={`/deed/${tokenId}`} className="block">
-      <Card className="w-full h-[391px] p-2.5 border-white/10">
-        {imageSection}
-        <div className="h-32 mt-2.5 flex flex-col gap-3">
-          <div className="px-2">
-            <div className="flex items-center gap-1 mb-0.5">
-              <BadgeCheck 
-                className={cn(
-                  "w-4 h-4",
-                  validationStatus === "Unvalidated" ? "text-yellow-500" : "text-white"
-                )} 
-              />
-              <span className="text-[9px] text-muted-foreground tracking-wider">
-                {deed.contract?.contractDeployer?.slice(0, 6)}...{deed.contract?.contractDeployer?.slice(-4)}
-              </span>
-            </div>
-            <h3 className="text-sm font-normal line-clamp-2">
-              {name}
-            </h3>
+    <Card className="overflow-hidden">
+      <div className="relative h-48 w-full">
+        {deed.image?.cachedUrl ? (
+          <Image
+            src={deed.image.cachedUrl}
+            alt={deed.title}
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-gray-100">
+            <span className="text-gray-400">No image</span>
           </div>
-
-          <div className="px-3 py-2.5 bg-muted/30 border border-white/10">
-            <div className="flex justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground tracking-wider">
-                  PRICE
-                </div>
-                <div className="text-sm font-medium uppercase">
-                  $500,000
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground tracking-wider">
-                  TYPE
-                </div>
-                <div className="text-sm font-medium uppercase">
-                  {propertyType}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground tracking-wider">
-                  LOCATION
-                </div>
-                <div className="text-sm font-medium uppercase">
-                  {state || "N/A"}
-                </div>
+        )}
+      </div>
+      <CardHeader>
+        <CardTitle>{deed.title}</CardTitle>
+        <CardDescription>{deed.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="text-sm text-gray-500">
+            <span className="font-medium">Location:</span> {deed.name}
+          </div>
+          {deed.metadata?.attributes && (
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-gray-500">Attributes:</span>
+              <div className="flex flex-wrap gap-2">
+                {deed.metadata.attributes.map((attr, index) => (
+                  <div
+                    key={index}
+                    className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600"
+                  >
+                    {attr.trait_type}: {attr.value}
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
-      </Card>
-    </Link>
+      </CardContent>
+    </Card>
   );
 } 
