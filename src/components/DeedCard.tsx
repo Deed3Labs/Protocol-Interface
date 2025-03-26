@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { DeedNFT } from "@/types/deed";
-import { Ethereum, Map } from "lucide-react";
+import { Coins, Map } from "lucide-react";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "./ui/badge";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 
 interface DeedCardProps {
@@ -61,7 +61,7 @@ export function DeedCard({ deed }: DeedCardProps) {
           </div>
           <div className="text-right">
             <div className="flex items-center gap-1 text-sm font-medium">
-              <Ethereum className="h-4 w-4" />
+              <Coins className="h-4 w-4" />
               <span>{deed.metadata.price}</span>
             </div>
             <p className="text-xs text-muted-foreground">Price</p>
