@@ -129,50 +129,54 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-transparent">
-      <div className="px-4 md:px-6 lg:px-8">
-        <div className="flex flex-col w-full min-w-0">
-          {/* Filter Toolbar - Moved to top */}
-          <div className="sticky top-0 z-10 bg-[#0e0e0e] border-b border-border-1">
-            <FilterToolbar view={view} onViewChange={setView} />
-          </div>
-
-          {/* Main Content */}
-          <div className="mt-4">
-            <div className="flex flex-col w-full min-w-0">
-              {/* View Container */}
-              <div className="w-full">
-                {view === 'list' ? (
-                  <ListView deeds={deeds} />
-                ) : (
-                  <GridView deeds={deeds} />
-                )}
+      <div className="flex flex-col w-full min-w-0">
+        {/* Filter Toolbar - Moved to top with consistent positioning */}
+        <div className="sticky top-0 z-10 bg-[#0e0e0e] border-b border-border-1">
+          <div className="px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col w-full">
+              <div className="flex items-center h-[64px]">
+                <FilterToolbar view={view} onViewChange={setView} />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Bottom Action Bar */}
-          <div className="fixed bottom-0 left-0 right-0 bg-[#0e0e0e] border-t border-border-1">
-            <div className="max-w-screen-2xl mx-auto px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {/* Buy/Sell Toggle */}
-                <div className="inline-flex rounded-md gap-1 overflow-hidden bg-bg-additional-1 p-0.5">
-                  <button className="relative flex items-center rounded-md py-1 px-3 h-7 text-sm font-medium text-text-primary bg-bg-primary">
-                    Buy
-                  </button>
-                  <button className="relative flex items-center rounded-md py-1 px-3 h-7 text-sm text-text-secondary hover:text-text-primary">
-                    Sell
-                  </button>
-                </div>
+        {/* Main Content */}
+        <div className="flex-1 px-4 md:px-6 lg:px-8">
+          <div className="flex flex-col w-full min-w-0">
+            {/* View Container */}
+            <div className="w-full">
+              {view === 'list' ? (
+                <ListView deeds={deeds} />
+              ) : (
+                <GridView deeds={deeds} />
+              )}
+            </div>
+          </div>
+        </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-3">
-                  <button className="inline-flex items-center whitespace-nowrap rounded-md transition duration-200 justify-center font-medium bg-bg-primary hover:bg-bg-additional-1 focus:bg-bg-additional-1 active:bg-bg-additional-1 border border-border-1 hover:border-border-2 focus:border-border-2 active:border-border-2 h-8 gap-1 px-3 text-sm disabled:pointer-events-none disabled:opacity-40">
-                    Make collection offer
-                  </button>
-                  <button className="inline-flex items-center whitespace-nowrap rounded-md transition duration-200 justify-center font-medium bg-blue-500 hover:bg-blue-600 text-white h-8 gap-1 px-3 text-sm disabled:pointer-events-none disabled:opacity-40">
-                    Buy floor
-                  </button>
-                </div>
+        {/* Bottom Action Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-[#0e0e0e] border-t border-border-1">
+          <div className="max-w-screen-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Buy/Sell Toggle */}
+              <div className="inline-flex rounded-md gap-1 overflow-hidden bg-bg-additional-1 p-0.5">
+                <button className="relative flex items-center rounded-md py-1 px-3 h-7 text-sm font-medium text-text-primary bg-bg-primary">
+                  Buy
+                </button>
+                <button className="relative flex items-center rounded-md py-1 px-3 h-7 text-sm text-text-secondary hover:text-text-primary">
+                  Sell
+                </button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                <button className="inline-flex items-center whitespace-nowrap rounded-md transition duration-200 justify-center font-medium bg-bg-primary hover:bg-bg-additional-1 focus:bg-bg-additional-1 active:bg-bg-additional-1 border border-border-1 hover:border-border-2 focus:border-border-2 active:border-border-2 h-8 gap-1 px-3 text-sm disabled:pointer-events-none disabled:opacity-40">
+                  Make collection offer
+                </button>
+                <button className="inline-flex items-center whitespace-nowrap rounded-md transition duration-200 justify-center font-medium bg-blue-500 hover:bg-blue-600 text-white h-8 gap-1 px-3 text-sm disabled:pointer-events-none disabled:opacity-40">
+                  Buy floor
+                </button>
               </div>
             </div>
           </div>
