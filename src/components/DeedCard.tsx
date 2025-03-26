@@ -25,9 +25,9 @@ export function DeedCard({ deed }: DeedCardProps) {
     latitude >= -85 && latitude <= 85 && 
     longitude >= -180 && longitude <= 180;
 
-  // Get first 3 traits
-  const displayTraits = deed.traits.slice(0, 3);
-  const remainingTraits = deed.traits.length - 3;
+  // Get first 2 traits
+  const displayTraits = deed.traits.slice(0, 2);
+  const remainingTraits = deed.traits.length - 2;
 
   return (
     <Card className="group relative overflow-hidden bg-background hover:shadow-xl transition-all duration-300 border border-border/50">
@@ -95,9 +95,8 @@ export function DeedCard({ deed }: DeedCardProps) {
               variant="secondary"
               className={cn(
                 "bg-primary/5 hover:bg-primary/10 transition-colors",
-                index % 3 === 0 && "bg-blue-500/5 hover:bg-blue-500/10",
-                index % 3 === 1 && "bg-purple-500/5 hover:bg-purple-500/10",
-                index % 3 === 2 && "bg-green-500/5 hover:bg-green-500/10"
+                index === 0 && "bg-blue-500/5 hover:bg-blue-500/10",
+                index === 1 && "bg-purple-500/5 hover:bg-purple-500/10"
               )}
             >
               {trait}
