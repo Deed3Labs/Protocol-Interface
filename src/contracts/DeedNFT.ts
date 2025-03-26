@@ -26,8 +26,9 @@ export const useDeedNFT = () => {
   });
 
   const mint = async () => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const tx = await contract?.mint();
+      const tx = await contract.mint();
       await tx.wait();
       return tx.hash;
     } catch (error) {
@@ -37,8 +38,9 @@ export const useDeedNFT = () => {
   };
 
   const mintWithMetadata = async (metadata: string) => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const tx = await contract?.mintWithMetadata(metadata);
+      const tx = await contract.mintWithMetadata(metadata);
       await tx.wait();
       return tx.hash;
     } catch (error) {
@@ -48,8 +50,9 @@ export const useDeedNFT = () => {
   };
 
   const getDeed = async (tokenId: string) => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const deed = await contract?.getDeed(tokenId);
+      const deed = await contract.getDeed(tokenId);
       return deed;
     } catch (error) {
       console.error('Error getting deed:', error);
@@ -58,8 +61,9 @@ export const useDeedNFT = () => {
   };
 
   const getDeedTraits = async (tokenId: string) => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const traits = await contract?.getDeedTraits(tokenId);
+      const traits = await contract.getDeedTraits(tokenId);
       return traits;
     } catch (error) {
       console.error('Error getting deed traits:', error);
@@ -68,8 +72,9 @@ export const useDeedNFT = () => {
   };
 
   const getDeedMetadata = async (tokenId: string) => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const metadata = await contract?.getDeedMetadata(tokenId);
+      const metadata = await contract.getDeedMetadata(tokenId);
       return metadata;
     } catch (error) {
       console.error('Error getting deed metadata:', error);
@@ -78,8 +83,9 @@ export const useDeedNFT = () => {
   };
 
   const getDeedOwner = async (tokenId: string) => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const owner = await contract?.ownerOf(tokenId);
+      const owner = await contract.ownerOf(tokenId);
       return owner;
     } catch (error) {
       console.error('Error getting deed owner:', error);
@@ -88,8 +94,9 @@ export const useDeedNFT = () => {
   };
 
   const getDeedBalance = async (address: string) => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const balance = await contract?.balanceOf(address);
+      const balance = await contract.balanceOf(address);
       return balance;
     } catch (error) {
       console.error('Error getting deed balance:', error);
@@ -98,8 +105,9 @@ export const useDeedNFT = () => {
   };
 
   const getDeedTokenByIndex = async (owner: string, index: number) => {
+    if (!contract) throw new Error('Contract not initialized');
     try {
-      const tokenId = await contract?.tokenOfOwnerByIndex(owner, index);
+      const tokenId = await contract.tokenOfOwnerByIndex(owner, index);
       return tokenId;
     } catch (error) {
       console.error('Error getting deed token by index:', error);
