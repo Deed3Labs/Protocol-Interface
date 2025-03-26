@@ -11,13 +11,17 @@ interface DeedCardProps {
 }
 
 export function DeedCard({ deed }: DeedCardProps) {
+  // Parse location coordinates (assuming format is "longitude,latitude")
+  const [longitude, latitude] = deed.metadata.location.split(',').map(coord => parseFloat(coord.trim()));
+  const zoom = 15;
+
   return (
     <Card className="group relative overflow-hidden bg-background hover:shadow-xl transition-all duration-300 border border-border/50">
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent z-10" />
         <Image
-          src={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${deed.metadata.location},15,0/400x400@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
+          src={`https://tile.openstreetmap.org/${zoom}/${Math.floor((longitude + 180) / 360 * Math.pow(2, zoom))}/${Math.floor((1 - Math.log(Math.tan(latitude * Math.PI / 180) + 1 / Math.cos(latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom))}.png`}
           alt={`Location ${deed.metadata.location}`}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-110"
