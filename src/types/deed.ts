@@ -1,4 +1,5 @@
 export interface DeedNFT {
+  uniqueId?: string; // Optional unique identifier for React keys
   contract: {
     address: string;
     name: string;
@@ -35,4 +36,8 @@ export interface DeedNFT {
   };
   mint: Record<string, any>;
   timeLastUpdated: string;
+  metadata?: {
+    location: string;
+    price: string;
+  };
 } 
