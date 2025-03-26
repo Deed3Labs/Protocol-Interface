@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { DeedNFT } from "@/types/deed";
-import { Ethereum } from "lucide-react";
+import { Ethereum, Map } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,20 +12,36 @@ interface DeedCardProps {
 
 export function DeedCard({ deed }: DeedCardProps) {
   // Parse location coordinates (assuming format is "longitude,latitude")
-  const [longitude, latitude] = deed.metadata.location.split(',').map(coord => parseFloat(coord.trim()));
+  const coordinates = deed.metadata.location.split(',').map(coord => parseFloat(coord.trim()));
+  const [longitude, latitude] = coordinates.length === 2 && !coordinates.some(isNaN) 
+    ? coordinates 
+    : [0, 0]; // Default to [0,0] if invalid coordinates
+  
   const zoom = 15;
+  const x = Math.floor((longitude + 180) / 360 * Math.pow(2, zoom));
+  const y = Math.floor((1 - Math.log(Math.tan(latitude * Math.PI / 180) + 1 / Math.cos(latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+  
+  const isValidCoordinates = !isNaN(x) && !isNaN(y) && 
+    latitude >= -85 && latitude <= 85 && 
+    longitude >= -180 && longitude <= 180;
 
   return (
     <Card className="group relative overflow-hidden bg-background hover:shadow-xl transition-all duration-300 border border-border/50">
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent z-10" />
-        <Image
-          src={`https://tile.openstreetmap.org/${zoom}/${Math.floor((longitude + 180) / 360 * Math.pow(2, zoom))}/${Math.floor((1 - Math.log(Math.tan(latitude * Math.PI / 180) + 1 / Math.cos(latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom))}.png`}
-          alt={`Location ${deed.metadata.location}`}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-110"
-        />
+        {isValidCoordinates ? (
+          <Image
+            src={`https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`}
+            alt={`Location ${deed.metadata.location}`}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <Map className="h-12 w-12 text-muted-foreground/50" />
+          </div>
+        )}
         <div className="absolute top-3 left-3 z-20">
           <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
             Deed #{deed.id}
