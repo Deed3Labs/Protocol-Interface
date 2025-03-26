@@ -1,3 +1,5 @@
+"use client";
+
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { createConfig, WagmiProvider, http } from 'wagmi'
@@ -19,7 +21,7 @@ const config = createConfig({
   },
 })
 
-function App({ Component, pageProps }: AppProps) {
+const App = ({ Component, pageProps }: AppProps) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>

@@ -132,7 +132,7 @@ export default function Home() {
       <div className="px-4 md:px-6 lg:px-8">
         <div className="flex flex-col w-full min-w-0">
           {/* Filter Toolbar - Moved to top */}
-          <div className="sticky top-0 z-10 bg-[#141414] border-b border-border-1">
+          <div className="sticky top-0 z-10 bg-[#0e0e0e] border-b border-border-1">
             <FilterToolbar view={view} onViewChange={setView} />
           </div>
 
@@ -151,7 +151,7 @@ export default function Home() {
           </div>
 
           {/* Bottom Action Bar */}
-          <div className="fixed bottom-0 left-0 right-0 bg-[#141414] border-t border-border-1">
+          <div className="fixed bottom-0 left-0 right-0 bg-[#0e0e0e] border-t border-border-1">
             <div className="max-w-screen-2xl mx-auto px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {/* Buy/Sell Toggle */}
