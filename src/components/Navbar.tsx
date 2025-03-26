@@ -1,17 +1,19 @@
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { metaMask } from 'wagmi/connectors';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 const Navbar = () => {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
+  const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const router = useRouter();
 
   const handleConnect = () => {
-    connect({ connector: metaMask() });
+    const connector = connectors[0]; // MetaMask connector from config
+    if (connector) {
+      connect({ connector });
+    }
   };
 
   const shortenAddress = (address: string) => {
