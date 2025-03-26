@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ClientOnly from './ClientOnly';
+import { ConnectWallet } from "@/components/ui/connect-wallet";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Navbar = () => {
   const { address, isConnected } = useAccount();
@@ -75,6 +77,10 @@ const Navbar = () => {
               )}
             </div>
           </ClientOnly>
+          <div className="ml-auto flex items-center space-x-4">
+            <ThemeToggle />
+            <ConnectWallet />
+          </div>
         </div>
       </div>
     </nav>
