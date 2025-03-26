@@ -3,7 +3,7 @@ import { DeedNFT } from "@/types/deed";
 import { Ethereum } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 interface DeedCardProps {
@@ -50,8 +50,10 @@ export function DeedCard({ deed }: DeedCardProps) {
 
         {/* Owner */}
         <div className="flex items-center gap-2 mb-4">
-          <Avatar className="h-6 w-6 bg-primary/10">
-            <span className="text-xs">{deed.owner.slice(2, 4)}</span>
+          <Avatar className="h-6 w-6">
+            <AvatarFallback className="bg-primary/10 text-xs">
+              {deed.owner.slice(2, 4)}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <p className="text-sm text-muted-foreground">Owned by</p>
