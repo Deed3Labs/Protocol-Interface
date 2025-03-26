@@ -2,6 +2,7 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import ClientOnly from './ClientOnly';
 
 const Navbar = () => {
   const { address, isConnected } = useAccount();
@@ -51,27 +52,29 @@ const Navbar = () => {
               </Link>
             </div>
           </div>
-          <div>
-            {isConnected ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground">
-                  {shortenAddress(address || '')}
-                </span>
+          <ClientOnly>
+            <div>
+              {isConnected ? (
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-muted-foreground">
+                    {shortenAddress(address || '')}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => disconnect()}
+                  >
+                    Disconnect
+                  </Button>
+                </div>
+              ) : (
                 <Button
-                  variant="outline"
-                  onClick={() => disconnect()}
+                  onClick={handleConnect}
                 >
-                  Disconnect
+                  Connect Wallet
                 </Button>
-              </div>
-            ) : (
-              <Button
-                onClick={handleConnect}
-              >
-                Connect Wallet
-              </Button>
-            )}
-          </div>
+              )}
+            </div>
+          </ClientOnly>
         </div>
       </div>
     </nav>
