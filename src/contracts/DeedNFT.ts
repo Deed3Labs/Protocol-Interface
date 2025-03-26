@@ -1,7 +1,8 @@
 import { useContractRead, useContractWrite, usePublicClient } from 'wagmi';
-import { parseEther } from 'viem';
+import { parseEther, createPublicClient, http } from 'viem';
 import { Alchemy, Network } from 'alchemy-sdk';
 import { DeedNFT } from '@/types/deed';
+import { sepolia } from 'viem/chains';
 
 // Define interfaces for Alchemy response types
 interface AlchemyNftAttribute {
@@ -53,6 +54,12 @@ console.log('Alchemy API Key:', ALCHEMY_API_KEY ? 'Present' : 'Missing');
 const alchemy = new Alchemy({
   apiKey: ALCHEMY_API_KEY,
   network: Network.ETH_SEPOLIA,
+});
+
+// Create a dedicated Alchemy RPC client
+const alchemyRpcClient = createPublicClient({
+  chain: sepolia,
+  transport: http(`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`),
 });
 
 const MINT_ABI = [
@@ -142,7 +149,7 @@ export function useDeedNFT() {
 
       // If we only got contract info or no NFTs, try getting NFTs using contract calls
       if (!nfts.nfts || nfts.nfts.length === 0) {
-        const supply = await retry(() => publicClient.readContract({
+        const supply = await retry(() => alchemyRpcClient.readContract({
           address: CONTRACT_ADDRESS,
           abi: [{
             name: 'totalSupply',
@@ -166,8 +173,8 @@ export function useDeedNFT() {
           const batchDeeds = await Promise.all(
             batch.map(async (tokenId) => {
               try {
-                // Get owner with retry
-                const owner = await retry(() => publicClient.readContract({
+                // Get owner with retry using Alchemy RPC
+                const owner = await retry(() => alchemyRpcClient.readContract({
                   address: CONTRACT_ADDRESS,
                   abi: [{
                     name: 'ownerOf',
@@ -180,8 +187,8 @@ export function useDeedNFT() {
                   args: [BigInt(tokenId)],
                 }));
 
-                // Get metadata with retry
-                const metadata = await retry(() => publicClient.readContract({
+                // Get metadata with retry using Alchemy RPC
+                const metadata = await retry(() => alchemyRpcClient.readContract({
                   address: CONTRACT_ADDRESS,
                   abi: [{
                     name: 'getDeedMetadata',
@@ -221,7 +228,7 @@ export function useDeedNFT() {
           
           // Add a small delay between batches
           if (i + batchSize < tokenIds.length) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 500)); // Reduced delay since we're using Alchemy
           }
         }
 
@@ -246,8 +253,8 @@ export function useDeedNFT() {
               // For now, we'll set a default price since it's not in the metadata
               const price = '0';
 
-              // Get the owner with retry
-              const owner = await retry(() => publicClient.readContract({
+              // Get the owner with retry using Alchemy RPC
+              const owner = await retry(() => alchemyRpcClient.readContract({
                 address: CONTRACT_ADDRESS,
                 abi: [{
                   name: 'ownerOf',
@@ -285,7 +292,7 @@ export function useDeedNFT() {
         
         // Add a small delay between batches
         if (i + batchSize < nfts.nfts.length) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 500)); // Reduced delay since we're using Alchemy
         }
       }
 
@@ -335,8 +342,7 @@ export function useDeedNFT() {
 
   const getDeedOwner = async (tokenId: string) => {
     try {
-      // We need to use the contract directly since Alchemy doesn't provide owner info
-      const owner = await publicClient.readContract({
+      const owner = await retry(() => alchemyRpcClient.readContract({
         address: CONTRACT_ADDRESS,
         abi: [{
           name: 'ownerOf',
@@ -347,7 +353,7 @@ export function useDeedNFT() {
         }],
         functionName: 'ownerOf',
         args: [BigInt(tokenId)],
-      });
+      }));
       return owner as string;
     } catch (error) {
       console.error('Error fetching deed owner:', error);
@@ -357,8 +363,7 @@ export function useDeedNFT() {
 
   const getDeedBalance = async () => {
     try {
-      // Use contract call instead of Alchemy since we need the total supply
-      const supply = await publicClient.readContract({
+      const supply = await retry(() => alchemyRpcClient.readContract({
         address: CONTRACT_ADDRESS,
         abi: [{
           name: 'totalSupply',
@@ -368,7 +373,7 @@ export function useDeedNFT() {
           outputs: [{ type: 'uint256' }],
         }],
         functionName: 'totalSupply',
-      });
+      }));
       return BigInt(supply || 0);
     } catch (error) {
       console.error('Error fetching deed balance:', error);
