@@ -1,3 +1,5 @@
+"use client"
+
 import { Card } from "@/components/ui/card";
 import { DeedNFT } from "@/types/deed";
 import { Coins, Map } from "lucide-react";
@@ -5,12 +7,19 @@ import Image from "next/image";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface DeedCardProps {
   deed: DeedNFT;
 }
 
 export function DeedCard({ deed }: DeedCardProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Parse location coordinates (assuming format is "latitude,longitude")
   const coordinates = deed.metadata.location.split(',').map(coord => parseFloat(coord.trim()));
   const [latitude, longitude] = coordinates.length === 2 && !coordinates.some(isNaN) 
@@ -32,6 +41,21 @@ export function DeedCard({ deed }: DeedCardProps) {
   // Get first 2 traits
   const displayTraits = deed.traits.slice(0, 2);
   const remainingTraits = deed.traits.length - 2;
+
+  if (!mounted) {
+    return (
+      <Card className="group relative overflow-hidden bg-background hover:shadow-xl transition-all duration-300 border border-border/50">
+        <div className="animate-pulse">
+          <div className="relative aspect-square bg-muted" />
+          <div className="p-4 space-y-4">
+            <div className="h-4 bg-muted rounded w-3/4" />
+            <div className="h-4 bg-muted rounded w-1/4" />
+            <div className="h-4 bg-muted rounded w-1/2" />
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="group relative overflow-hidden bg-background hover:shadow-xl transition-all duration-300 border border-border/50">
