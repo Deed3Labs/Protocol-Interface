@@ -17,6 +17,17 @@ module.exports = {
       },
     },
     extend: {
+      spacing: {
+        'sm-top-nav': '56px',
+        'lg-top-nav': '72px',
+        'hero-header-compact': '64px',
+        'pwa-banner-offset': '0px',
+        'filter-toolbar': '48px',
+        'side-nav': '72px',
+        'scrollbar-size': '15px',
+        'bottom-action-bar': '64px',
+        'page-footer': '0px',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
