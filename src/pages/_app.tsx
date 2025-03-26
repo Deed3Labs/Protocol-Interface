@@ -1,17 +1,16 @@
-import type { AppProps } from 'next/app';
-import { WagmiConfig } from 'wagmi';
-import { config } from '../lib/wagmi';
-import Layout from '../components/Layout';
-import '../styles/globals.css';
+import '@/styles/globals.css'
+import type { AppProps } from 'next/app'
+import { WagmiConfig } from 'wagmi'
+import { config } from '@/config/wagmi'
+import Navbar from '@/components/Navbar'
 
-function MyApp({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={config}>
-      <Layout>
+      <div className="min-h-screen bg-background">
+        <Navbar />
         <Component {...pageProps} />
-      </Layout>
+      </div>
     </WagmiConfig>
-  );
+  )
 }
-
-export default MyApp;

@@ -1,16 +1,18 @@
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { injected } from 'wagmi/connectors';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 const Navbar = () => {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
+  const { connect } = useConnect();
   const { disconnect } = useDisconnect();
   const router = useRouter();
+
+  const handleConnect = () => {
+    connect({ connector: injected() });
+  };
 
   const shortenAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -18,8 +20,8 @@ const Navbar = () => {
 
   return (
     <nav className="border-b">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex justify-between items-center">
           <div className="flex items-center space-x-8">
             <Link href="/" className="text-xl font-bold">
               DeedNFT
@@ -47,9 +49,9 @@ const Navbar = () => {
               </Link>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div>
             {isConnected ? (
-              <>
+              <div className="flex items-center space-x-4">
                 <span className="text-sm text-muted-foreground">
                   {shortenAddress(address || '')}
                 </span>
@@ -59,10 +61,10 @@ const Navbar = () => {
                 >
                   Disconnect
                 </Button>
-              </>
+              </div>
             ) : (
               <Button
-                onClick={() => connect()}
+                onClick={handleConnect}
               >
                 Connect Wallet
               </Button>

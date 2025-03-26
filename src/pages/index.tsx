@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { useDeedNFT, DeedNFT } from '../contracts/DeedNFT';
+import { useDeedNFT, DeedNFT } from '@/contracts/DeedNFT';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, AlertCircle } from 'lucide-react';
 
 const HomePage = () => {
   const { address } = useAccount();
-  const { getDeedBalance, getDeedTokenByIndex, getDeed, getDeedTraits } = useDeedNFT();
+  const { contract, getDeedBalance, getDeedTokenByIndex, getDeed, getDeedTraits } = useDeedNFT();
   const [deeds, setDeeds] = useState<DeedNFT[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filterPropertyType, setFilterPropertyType] = useState<string>('all');
@@ -22,39 +22,41 @@ const HomePage = () => {
 
   useEffect(() => {
     const fetchDeeds = async () => {
-      if (!address) {
-        setIsLoading(false);
-        return;
-      }
-
+      if (!address) return;
+      
       try {
+        setLoading(true);
+        setError(null);
+        
         const balance = await getDeedBalance(address);
-        const deedsData: DeedNFT[] = [];
+        if (!balance) return;
 
-        for (let i = 0; i < balance; i++) {
+        const deedPromises = [];
+        for (let i = 0; i < Number(balance); i++) {
           const tokenId = await getDeedTokenByIndex(address, i);
-          const deed = await getDeed(tokenId);
-          const traits = await getDeedTraits(tokenId);
+          const deed = await getDeed(tokenId.toString());
+          const traits = await getDeedTraits(tokenId.toString());
           
-          deedsData.push({
-            id: tokenId,
+          deedPromises.push({
+            id: tokenId.toString(),
             owner: address,
-            metadata: deed.metadata,
+            metadata: deed as string,
             traits: {
-              propertyType: traits.propertyType,
-              location: traits.location,
-              value: traits.value,
-              status: traits.status,
+              propertyType: traits.propertyType as string,
+              location: traits.location as string,
+              value: traits.value as string,
+              status: traits.status as string,
             },
           });
         }
 
-        setDeeds(deedsData);
+        const fetchedDeeds = await Promise.all(deedPromises);
+        setDeeds(fetchedDeeds);
       } catch (err) {
-        setError('Failed to fetch deeds');
         console.error('Error fetching deeds:', err);
+        setError('Failed to fetch deeds. Please try again later.');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
@@ -74,11 +76,37 @@ const HomePage = () => {
   const propertyTypes = Array.from(new Set(deeds.map(deed => deed.traits.propertyType)));
   const statusTypes = Array.from(new Set(deeds.map(deed => deed.traits.status)));
 
-  if (isLoading) {
+  if (!address) {
     return (
-      <main className="container mx-auto py-12">
+      <div className="container mx-auto p-4">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Not Connected</AlertTitle>
+          <AlertDescription>
+            Please connect your wallet to view your deeds.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4">
         <div className="text-center">Loading deeds...</div>
-      </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
@@ -145,12 +173,6 @@ const HomePage = () => {
           </div>
         </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         {!address ? (
           <Alert>
             <AlertDescription className="text-center">
@@ -169,6 +191,7 @@ const HomePage = () => {
               <Card key={deed.id} className={viewMode === 'list' ? 'flex' : ''}>
                 <CardHeader className={viewMode === 'list' ? 'w-1/3' : ''}>
                   <CardTitle>Deed #{deed.id}</CardTitle>
+                  <CardDescription>Property Details</CardDescription>
                 </CardHeader>
                 <CardContent className={viewMode === 'list' ? 'w-2/3' : ''}>
                   <div className="space-y-2">
@@ -183,6 +206,9 @@ const HomePage = () => {
                     </div>
                     <div>
                       <span className="font-medium">Status:</span> {deed.traits.status}
+                    </div>
+                    <div>
+                      <span className="font-medium">Metadata:</span> {deed.metadata}
                     </div>
                   </div>
                 </CardContent>

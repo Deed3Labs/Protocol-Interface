@@ -1,114 +1,133 @@
-import { useContract, useProvider, useSigner } from 'wagmi';
+import { useContractRead, useContractWrite, usePublicClient, useWalletClient } from 'wagmi';
 import { ethers } from 'ethers';
 import DeedNFTABI from './abis/DeedNFT.json';
+
+export interface DeedTraits {
+  propertyType: string;
+  location: string;
+  value: string;
+  status: string;
+}
 
 export interface DeedNFT {
   id: string;
   owner: string;
   metadata: string;
-  traits: {
-    propertyType: string;
-    location: string;
-    value: string;
-    status: string;
-  };
+  traits: DeedTraits;
 }
 
 export const useDeedNFT = () => {
-  const provider = useProvider();
-  const { data: signer } = useSigner();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
   const contractAddress = process.env.NEXT_PUBLIC_DEEDNFT_CONTRACT_ADDRESS || '';
 
-  const contract = useContract({
-    address: contractAddress,
+  const { data: contract } = useContractRead({
+    address: contractAddress as `0x${string}`,
     abi: DeedNFTABI,
-    signerOrProvider: signer || provider,
+    functionName: 'balanceOf',
+    args: [walletClient?.account.address],
   });
 
-  const mint = async () => {
-    if (!contract) throw new Error('Contract not initialized');
-    try {
-      const tx = await contract.mint();
-      await tx.wait();
-      return tx.hash;
-    } catch (error) {
-      console.error('Error minting:', error);
-      throw error;
-    }
-  };
+  const { writeContract: mint } = useContractWrite({
+    abi: DeedNFTABI,
+    functionName: 'mint',
+  });
 
-  const mintWithMetadata = async (metadata: string) => {
-    if (!contract) throw new Error('Contract not initialized');
-    try {
-      const tx = await contract.mintWithMetadata(metadata);
-      await tx.wait();
-      return tx.hash;
-    } catch (error) {
-      console.error('Error minting with metadata:', error);
-      throw error;
-    }
-  };
+  const { writeContract: mintWithMetadata } = useContractWrite({
+    abi: DeedNFTABI,
+    functionName: 'mintWithMetadata',
+  });
 
-  const getDeed = async (tokenId: string) => {
-    if (!contract) throw new Error('Contract not initialized');
+  const getDeed = async (tokenId: string): Promise<string> => {
+    if (!publicClient) throw new Error('Public client not initialized');
     try {
-      const deed = await contract.getDeed(tokenId);
-      return deed;
+      const deed = await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: DeedNFTABI,
+        functionName: 'getDeed',
+        args: [BigInt(tokenId)],
+      });
+      return deed as string;
     } catch (error) {
       console.error('Error getting deed:', error);
       throw error;
     }
   };
 
-  const getDeedTraits = async (tokenId: string) => {
-    if (!contract) throw new Error('Contract not initialized');
+  const getDeedTraits = async (tokenId: string): Promise<DeedTraits> => {
+    if (!publicClient) throw new Error('Public client not initialized');
     try {
-      const traits = await contract.getDeedTraits(tokenId);
-      return traits;
+      const traits = await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: DeedNFTABI,
+        functionName: 'getDeedTraits',
+        args: [BigInt(tokenId)],
+      });
+      return traits as DeedTraits;
     } catch (error) {
       console.error('Error getting deed traits:', error);
       throw error;
     }
   };
 
-  const getDeedMetadata = async (tokenId: string) => {
-    if (!contract) throw new Error('Contract not initialized');
+  const getDeedMetadata = async (tokenId: string): Promise<string> => {
+    if (!publicClient) throw new Error('Public client not initialized');
     try {
-      const metadata = await contract.getDeedMetadata(tokenId);
-      return metadata;
+      const metadata = await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: DeedNFTABI,
+        functionName: 'getDeedMetadata',
+        args: [BigInt(tokenId)],
+      });
+      return metadata as string;
     } catch (error) {
       console.error('Error getting deed metadata:', error);
       throw error;
     }
   };
 
-  const getDeedOwner = async (tokenId: string) => {
-    if (!contract) throw new Error('Contract not initialized');
+  const getDeedOwner = async (tokenId: string): Promise<string> => {
+    if (!publicClient) throw new Error('Public client not initialized');
     try {
-      const owner = await contract.ownerOf(tokenId);
-      return owner;
+      const owner = await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: DeedNFTABI,
+        functionName: 'ownerOf',
+        args: [BigInt(tokenId)],
+      });
+      return owner as string;
     } catch (error) {
       console.error('Error getting deed owner:', error);
       throw error;
     }
   };
 
-  const getDeedBalance = async (address: string) => {
-    if (!contract) throw new Error('Contract not initialized');
+  const getDeedBalance = async (address: string): Promise<bigint> => {
+    if (!publicClient) throw new Error('Public client not initialized');
     try {
-      const balance = await contract.balanceOf(address);
-      return balance;
+      const balance = await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: DeedNFTABI,
+        functionName: 'balanceOf',
+        args: [address as `0x${string}`],
+      });
+      return balance as bigint;
     } catch (error) {
       console.error('Error getting deed balance:', error);
       throw error;
     }
   };
 
-  const getDeedTokenByIndex = async (owner: string, index: number) => {
-    if (!contract) throw new Error('Contract not initialized');
+  const getDeedTokenByIndex = async (owner: string, index: number): Promise<bigint> => {
+    if (!publicClient) throw new Error('Public client not initialized');
     try {
-      const tokenId = await contract.tokenOfOwnerByIndex(owner, index);
-      return tokenId;
+      const tokenId = await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: DeedNFTABI,
+        functionName: 'tokenOfOwnerByIndex',
+        args: [owner as `0x${string}`, BigInt(index)],
+      });
+      return tokenId as bigint;
     } catch (error) {
       console.error('Error getting deed token by index:', error);
       throw error;
@@ -117,8 +136,17 @@ export const useDeedNFT = () => {
 
   return {
     contract,
-    mint,
-    mintWithMetadata,
+    mint: () => mint({
+      abi: DeedNFTABI,
+      functionName: 'mint',
+      address: contractAddress as `0x${string}`,
+    }),
+    mintWithMetadata: (metadata: string) => mintWithMetadata({
+      abi: DeedNFTABI,
+      functionName: 'mintWithMetadata',
+      address: contractAddress as `0x${string}`,
+      args: [metadata],
+    }),
     getDeed,
     getDeedTraits,
     getDeedMetadata,
