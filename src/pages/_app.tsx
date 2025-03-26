@@ -1,6 +1,6 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
-import { WagmiConfig, createConfig } from 'wagmi'
+import { WagmiProvider, createConfig } from 'wagmi'
 import { sepolia } from 'wagmi/chains'
 import { createPublicClient, http } from 'viem'
 import { ConnectKitProvider } from 'connectkit'
@@ -10,14 +10,11 @@ import Layout from '@/components/Layout'
 
 const queryClient = new QueryClient()
 
-const publicClient = createPublicClient({
-  chain: sepolia,
-  transport: http(),
-})
-
 const config = createConfig({
-  publicClient,
-  autoConnect: true,
+  chains: [sepolia],
+  transports: {
+    [sepolia.id]: http(),
+  },
 })
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -28,7 +25,7 @@ export default function App({ Component, pageProps }: AppProps) {
       enableSystem
       disableTransitionOnChange
     >
-      <WagmiConfig config={config}>
+      <WagmiProvider config={config}>
         <ConnectKitProvider>
           <QueryClientProvider client={queryClient}>
             <Layout>
@@ -36,7 +33,7 @@ export default function App({ Component, pageProps }: AppProps) {
             </Layout>
           </QueryClientProvider>
         </ConnectKitProvider>
-      </WagmiConfig>
+      </WagmiProvider>
     </ThemeProvider>
   )
 }
