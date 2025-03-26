@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeedNFT } from '@/types/deed';
 import { ListItem } from './ListItem';
+import { Checkbox } from './ui/checkbox';
 
 interface ListViewProps {
   deeds: DeedNFT[];
@@ -9,22 +10,54 @@ interface ListViewProps {
 export function ListView({ deeds }: ListViewProps) {
   return (
     <div className="w-full">
-      <div className="bg-card dark:bg-[#1c1c1c] rounded-lg overflow-hidden">
-        {/* Header */}
-        <div className="grid grid-cols-7 gap-4 p-4 text-sm font-medium text-muted-foreground border-b border-border">
-          <div className="col-span-2">Deed</div>
-          <div>Price</div>
-          <div>Type</div>
-          <div>Location</div>
-          <div>Last Sale</div>
-          <div>Owner</div>
+      {/* Header */}
+      <div className="inline-flex w-max min-w-full items-center gap-4 py-2 text-sm text-muted-foreground">
+        {/* Checkbox Header */}
+        <div className="flex items-center shrink-0 grow-0 overflow-hidden first:pl-2 last:pr-2 justify-start w-6">
+          <Checkbox />
         </div>
-        {/* List Items */}
-        <div className="divide-y divide-border">
-          {deeds.map((deed) => (
-            <ListItem key={deed.id} deed={deed} />
-          ))}
+
+        {/* Item Header */}
+        <div className="flex items-center shrink-0 overflow-hidden first:pl-2 last:pr-2 justify-start z-[1] w-[120px] grow-[2] pr-2">
+          Item
         </div>
+
+        {/* Rarity Header */}
+        <div className="flex items-center shrink-0 overflow-hidden first:pl-2 last:pr-2 justify-end w-[70px] grow">
+          Rarity
+        </div>
+
+        {/* Price Header */}
+        <div className="flex items-center shrink-0 overflow-hidden first:pl-2 last:pr-2 justify-end w-[130px] grow">
+          Price
+        </div>
+
+        {/* Top Offer Header */}
+        <div className="flex items-center shrink-0 overflow-hidden first:pl-2 last:pr-2 justify-end w-[130px] grow">
+          Top Offer
+        </div>
+
+        {/* Last Sale Header */}
+        <div className="flex items-center shrink-0 overflow-hidden first:pl-2 last:pr-2 justify-end w-[110px] grow">
+          Last Sale
+        </div>
+
+        {/* Owner Header */}
+        <div className="flex items-center shrink-0 overflow-hidden first:pl-2 last:pr-2 justify-end w-[70px] grow">
+          Owner
+        </div>
+
+        {/* Listed Header */}
+        <div className="flex items-center shrink-0 overflow-hidden first:pl-2 last:pr-2 justify-end w-[70px] grow">
+          Listed
+        </div>
+      </div>
+
+      {/* List Items */}
+      <div className="space-y-1">
+        {deeds.map((deed) => (
+          <ListItem key={deed.id.tokenId} deed={deed} />
+        ))}
       </div>
     </div>
   );
