@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { DeedNFT } from '@/types/deed';
 import { ListView } from '@/components/ListView';
 import { GridView } from '@/components/GridView';
@@ -82,7 +84,7 @@ export default function Home() {
     category: 'Real Estate'
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchDeeds = async () => {
       try {
         const alchemy = new Alchemy({
@@ -130,21 +132,18 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-transparent">
       <div className="flex flex-col w-full min-w-0">
-        {/* Filter Toolbar - Moved to top with consistent positioning */}
+        {/* Filter Toolbar */}
         <div className="sticky top-0 z-10 bg-[#0e0e0e] border-b border-border-1">
           <div className="px-4 md:px-6 lg:px-8">
-            <div className="flex flex-col w-full">
-              <div className="flex items-center h-[64px]">
-                <FilterToolbar view={view} onViewChange={setView} />
-              </div>
+            <div className="flex items-center h-16">
+              <FilterToolbar view={view} onViewChange={setView} />
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 px-4 md:px-6 lg:px-8">
-          <div className="flex flex-col w-full min-w-0">
-            {/* View Container */}
+        <div className="flex-1">
+          <div className="px-4 md:px-6 lg:px-8">
             <div className="w-full">
               {view === 'list' ? (
                 <ListView deeds={deeds} />

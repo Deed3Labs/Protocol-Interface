@@ -5,7 +5,7 @@ import type { AppProps } from 'next/app'
 import { createConfig, WagmiProvider, http } from 'wagmi'
 import { sepolia } from 'wagmi/chains'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider } from 'next-themes'
 import Layout from '@/components/Layout'
 import { injected } from 'wagmi/connectors'
 
@@ -21,15 +21,14 @@ const config = createConfig({
   },
 })
 
-const App = ({ Component, pageProps }: AppProps) => {
+export default function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+          defaultTheme="dark"
+          enableSystem={false}
         >
           <Layout>
             <Component {...pageProps} />
@@ -39,5 +38,3 @@ const App = ({ Component, pageProps }: AppProps) => {
     </WagmiProvider>
   )
 }
-
-export default App
