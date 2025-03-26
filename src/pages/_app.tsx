@@ -19,7 +19,7 @@ const config = createConfig({
   },
 })
 
-export default function App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
@@ -37,3 +37,5 @@ export default function App({ Component, pageProps }: AppProps) {
     </WagmiProvider>
   )
 }
+
+export default App
