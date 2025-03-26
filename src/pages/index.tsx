@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { DeedNFT } from '@/types/deed';
 import { DeedCard } from '@/components/DeedCard';
+import { ListView } from '@/components/ListView';
+import { ViewToggle } from '@/components/ViewToggle';
 import { Alchemy, Network, Nft } from 'alchemy-sdk';
 
 const transformToDeedNFT = (nft: Nft): DeedNFT => {
@@ -47,6 +49,7 @@ const transformToDeedNFT = (nft: Nft): DeedNFT => {
 };
 
 export default function Home() {
+  const [view, setView] = useState<'grid' | 'list'>('grid');
   const [deeds, setDeeds] = useState<DeedNFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,13 +100,21 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="mb-8 text-3xl font-bold">Deed NFTs</h1>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {deeds.map((deed) => (
-          <DeedCard key={deed.id.tokenId} deed={deed} />
-        ))}
+    <div className="py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">All Deeds</h1>
+        <ViewToggle view={view} onViewChange={setView} />
       </div>
+
+      {view === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {deeds.map((deed) => (
+            <DeedCard key={deed.id.tokenId} deed={deed} />
+          ))}
+        </div>
+      ) : (
+        <ListView deeds={deeds} />
+      )}
     </div>
   );
 } 
