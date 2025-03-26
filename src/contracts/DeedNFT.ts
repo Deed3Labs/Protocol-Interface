@@ -1,157 +1,167 @@
-import { useContractRead, useContractWrite, usePublicClient, useWalletClient } from 'wagmi';
-import { ethers } from 'ethers';
-import DeedNFTABI from './abis/DeedNFT.json';
+import { useContractRead, useContractWrite, usePublicClient } from 'wagmi';
+import { parseEther } from 'viem';
+import { DeedNFT } from '@/types/deed';
 
-export interface DeedTraits {
-  propertyType: string;
-  location: string;
-  value: string;
-  status: string;
-}
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 
-export interface DeedNFT {
-  id: string;
-  owner: string;
-  metadata: string;
-  traits: DeedTraits;
-}
+const MINT_ABI = [
+  {
+    name: 'mint',
+    type: 'function',
+    stateMutability: 'payable',
+    inputs: [
+      { name: 'location', type: 'string' },
+      { name: 'price', type: 'uint256' },
+    ],
+    outputs: [],
+  },
+] as const;
 
-export const useDeedNFT = () => {
+const MINT_WITH_METADATA_ABI = [
+  {
+    name: 'mintWithMetadata',
+    type: 'function',
+    stateMutability: 'payable',
+    inputs: [
+      { name: 'location', type: 'string' },
+      { name: 'price', type: 'uint256' },
+      { name: 'traits', type: 'string[]' },
+    ],
+    outputs: [],
+  },
+] as const;
+
+export function useDeedNFT() {
   const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
-  const contractAddress = process.env.NEXT_PUBLIC_DEEDNFT_CONTRACT_ADDRESS || '';
 
-  const { data: contract } = useContractRead({
-    address: contractAddress as `0x${string}`,
-    abi: DeedNFTABI,
-    functionName: 'balanceOf',
-    args: [walletClient?.account.address],
+  const { data: totalSupply } = useContractRead({
+    address: CONTRACT_ADDRESS,
+    abi: [
+      {
+        name: 'totalSupply',
+        type: 'function',
+        stateMutability: 'view',
+        inputs: [],
+        outputs: [{ type: 'uint256' }],
+      },
+    ],
+    functionName: 'totalSupply',
   });
 
-  const { writeContract: mint } = useContractWrite({
-    abi: DeedNFTABI,
-    functionName: 'mint',
-  });
+  const { writeContract: mint } = useContractWrite();
 
-  const { writeContract: mintWithMetadata } = useContractWrite({
-    abi: DeedNFTABI,
-    functionName: 'mintWithMetadata',
-  });
+  const { writeContract: mintWithMetadata } = useContractWrite();
 
-  const getDeed = async (tokenId: string): Promise<string> => {
+  const getDeed = async (tokenId: string) => {
     if (!publicClient) throw new Error('Public client not initialized');
-    try {
-      const deed = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: DeedNFTABI,
-        functionName: 'getDeed',
-        args: [BigInt(tokenId)],
-      });
-      return deed as string;
-    } catch (error) {
-      console.error('Error getting deed:', error);
-      throw error;
-    }
+    return publicClient.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: [
+        {
+          name: 'getDeed',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [{ name: 'tokenId', type: 'uint256' }],
+          outputs: [{ type: 'string' }],
+        },
+      ],
+      functionName: 'getDeed',
+      args: [BigInt(tokenId)],
+    });
   };
 
-  const getDeedTraits = async (tokenId: string): Promise<DeedTraits> => {
+  const getDeedTraits = async (tokenId: string) => {
     if (!publicClient) throw new Error('Public client not initialized');
-    try {
-      const traits = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: DeedNFTABI,
-        functionName: 'getDeedTraits',
-        args: [BigInt(tokenId)],
-      });
-      return traits as DeedTraits;
-    } catch (error) {
-      console.error('Error getting deed traits:', error);
-      throw error;
-    }
+    return publicClient.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: [
+        {
+          name: 'getDeedTraits',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [{ name: 'tokenId', type: 'uint256' }],
+          outputs: [{ type: 'string[]' }],
+        },
+      ],
+      functionName: 'getDeedTraits',
+      args: [BigInt(tokenId)],
+    });
   };
 
-  const getDeedMetadata = async (tokenId: string): Promise<string> => {
+  const getDeedMetadata = async (tokenId: string) => {
     if (!publicClient) throw new Error('Public client not initialized');
-    try {
-      const metadata = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: DeedNFTABI,
-        functionName: 'getDeedMetadata',
-        args: [BigInt(tokenId)],
-      });
-      return metadata as string;
-    } catch (error) {
-      console.error('Error getting deed metadata:', error);
-      throw error;
-    }
+    return publicClient.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: [
+        {
+          name: 'getDeedMetadata',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [{ name: 'tokenId', type: 'uint256' }],
+          outputs: [
+            { name: 'location', type: 'string' },
+            { name: 'price', type: 'uint256' },
+          ],
+        },
+      ],
+      functionName: 'getDeedMetadata',
+      args: [BigInt(tokenId)],
+    });
   };
 
-  const getDeedOwner = async (tokenId: string): Promise<string> => {
+  const getDeedOwner = async (tokenId: string) => {
     if (!publicClient) throw new Error('Public client not initialized');
-    try {
-      const owner = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: DeedNFTABI,
-        functionName: 'ownerOf',
-        args: [BigInt(tokenId)],
-      });
-      return owner as string;
-    } catch (error) {
-      console.error('Error getting deed owner:', error);
-      throw error;
-    }
+    return publicClient.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: [
+        {
+          name: 'ownerOf',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [{ name: 'tokenId', type: 'uint256' }],
+          outputs: [{ type: 'address' }],
+        },
+      ],
+      functionName: 'ownerOf',
+      args: [BigInt(tokenId)],
+    });
   };
 
-  const getDeedBalance = async (address: string): Promise<bigint> => {
+  const getDeedBalance = async () => {
     if (!publicClient) throw new Error('Public client not initialized');
-    try {
-      const balance = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: DeedNFTABI,
-        functionName: 'balanceOf',
-        args: [address as `0x${string}`],
-      });
-      return balance as bigint;
-    } catch (error) {
-      console.error('Error getting deed balance:', error);
-      throw error;
-    }
-  };
-
-  const getDeedTokenByIndex = async (owner: string, index: number): Promise<bigint> => {
-    if (!publicClient) throw new Error('Public client not initialized');
-    try {
-      const tokenId = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: DeedNFTABI,
-        functionName: 'tokenOfOwnerByIndex',
-        args: [owner as `0x${string}`, BigInt(index)],
-      });
-      return tokenId as bigint;
-    } catch (error) {
-      console.error('Error getting deed token by index:', error);
-      throw error;
-    }
+    return publicClient.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: [
+        {
+          name: 'totalSupply',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [],
+          outputs: [{ type: 'uint256' }],
+        },
+      ],
+      functionName: 'totalSupply',
+    });
   };
 
   return {
-    contract,
-    mint: () => mint({
-      abi: DeedNFTABI,
+    totalSupply,
+    mint: (location: string, price: string) => mint({
+      address: CONTRACT_ADDRESS,
+      abi: MINT_ABI,
       functionName: 'mint',
-      address: contractAddress as `0x${string}`,
+      args: [location, parseEther(price)],
     }),
-    mintWithMetadata: (metadata: string) => mintWithMetadata({
-      abi: DeedNFTABI,
+    mintWithMetadata: (location: string, price: string, traits: string[]) => mintWithMetadata({
+      address: CONTRACT_ADDRESS,
+      abi: MINT_WITH_METADATA_ABI,
       functionName: 'mintWithMetadata',
-      address: contractAddress as `0x${string}`,
-      args: [metadata],
+      args: [location, parseEther(price), traits],
     }),
     getDeed,
     getDeedTraits,
     getDeedMetadata,
     getDeedOwner,
     getDeedBalance,
-    getDeedTokenByIndex,
   };
-}; 
+} 
