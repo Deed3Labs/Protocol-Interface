@@ -1,7 +1,6 @@
 import React from 'react';
 import { DeedNFT } from '@/types/deed';
 import Image from 'next/image';
-import { CheckBadgeIcon } from '@heroicons/react/24/outline';
 
 interface GridViewProps {
   deeds: DeedNFT[];
@@ -27,7 +26,20 @@ export function GridView({ deeds }: GridViewProps) {
                 <div className="w-full h-full bg-[#141414] rounded-sm" />
               )}
               <div className="w-7 h-7 p-1 bg-zinc-900 bg-opacity-40 rounded-3xl border border-white border-opacity-10 flex-col justify-center items-center flex absolute bottom-0 right-0 m-2">
-                <CheckBadgeIcon className="text-white w-5 h-5" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
               </div>
             </div>
 
@@ -39,7 +51,20 @@ export function GridView({ deeds }: GridViewProps) {
                   <div className="justify-start items-center gap-1 flex">
                     <div className="h-5 flex-col justify-center items-start inline-flex">
                       <div className="flex items-center gap-1 text-white text-opacity-60 text-[9px] sm:text-[9px] font-normal leading-none tracking-wider">
-                        <CheckBadgeIcon className="text-white w-4 h-4 sm:w-[18px] sm:h-[18px] mb-[-1px]" />
+                        <svg
+                          className="w-4 h-4 sm:w-[18px] sm:h-[18px] mb-[-1px] text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
                         <span className="truncate">{deed.contract.contractDeployer || 'Unknown'}</span>
                       </div>
                     </div>
