@@ -10,8 +10,8 @@ interface FilterToolbarProps {
 
 export function FilterToolbar({ view, onViewChange }: FilterToolbarProps) {
   return (
-    <div className="sticky z-[2] top-[calc(theme(spacing.sm-top-nav)+theme(spacing.pwa-banner-offset))] lg:top-[calc(theme(spacing.lg-top-nav)+theme(spacing.pwa-banner-offset))] lg:relative">
-      <div className="flex flex-col lg:bg-bg-app lg:shadow-none">
+    <div className="w-full">
+      <div className="flex flex-col">
         <div className="flex items-center px-2 scrollbar-hidden h-filter-toolbar overflow-x-scroll lg:overflow-visible">
           <div className="flex w-full gap-3 h-8">
             {/* Mobile Filter Button */}
