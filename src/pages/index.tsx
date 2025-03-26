@@ -21,8 +21,8 @@ export default function Home() {
         setDeeds(fetchedDeeds.map(deed => ({
           ...deed,
           metadata: {
-            location: deed.location,
-            price: deed.price,
+            location: deed.name || deed.raw?.metadata?.name || `Deed #${deed.tokenId}`,
+            price: deed.raw?.metadata?.attributes?.find(attr => attr.trait_type === "Price")?.value || "N/A",
           },
         })));
       } catch (err) {
@@ -79,7 +79,7 @@ export default function Home() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {deeds.map((deed) => (
-            <DeedCard key={deed.id} deed={deed} />
+            <DeedCard key={deed.tokenId} deed={deed} />
           ))}
         </div>
       )}

@@ -2,10 +2,8 @@
 
 import { Card } from "@/components/ui/card";
 import { DeedNFT } from "@/types/deed";
-import { BadgeCheck, Coins } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import Image from "next/image";
-import { Badge } from "./ui/badge";
-import { Avatar, AvatarFallback } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -22,29 +20,29 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
     setMounted(true);
   }, []);
 
-  // Default coordinates for Austin, TX if we can't parse the location
-  const defaultCoords = {
-    lat: 30.2672,
-    lng: -97.7431
-  };
+  // Get the validation status from attributes
+  const validationStatus = deed.raw?.metadata?.attributes?.find(
+    attr => attr.trait_type === "Validation Status"
+  )?.value || "Unvalidated";
 
-  const [latitude, longitude] = [defaultCoords.lat, defaultCoords.lng];
-  const zoom = 15;
-  const lat_rad = latitude * Math.PI / 180;
-  const n = Math.pow(2, zoom);
-  const xtile = Math.floor((longitude + 180) / 360 * n);
-  const ytile = Math.floor((1 - Math.log(Math.tan(lat_rad) + 1 / Math.cos(lat_rad)) / Math.PI) / 2 * n);
-  const isValidCoordinates = true;
+  // Get the property type from attributes
+  const propertyType = deed.raw?.metadata?.attributes?.find(
+    attr => attr.trait_type === "Asset Type"
+  )?.value || "Land";
+
+  // Get location details from attributes
+  const state = deed.raw?.metadata?.attributes?.find(
+    attr => attr.trait_type === "State"
+  )?.value;
 
   if (!mounted) {
     return (
-      <Card className="group relative overflow-hidden bg-background hover:shadow-xl transition-all duration-300 border border-border/50">
+      <Card className="w-full h-[391px] p-2.5 border-white/10">
         <div className="animate-pulse">
-          <div className="relative aspect-square bg-muted" />
-          <div className="p-4 space-y-4">
+          <div className="h-60 bg-muted" />
+          <div className="h-32 mt-2.5 space-y-4">
             <div className="h-4 bg-muted rounded w-3/4" />
-            <div className="h-4 bg-muted rounded w-1/4" />
-            <div className="h-4 bg-muted rounded w-1/2" />
+            <div className="h-14 bg-muted rounded" />
           </div>
         </div>
       </Card>
@@ -56,23 +54,24 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
       "relative bg-white/5",
       small ? "h-16 w-16" : "h-60"
     )}>
-      {isValidCoordinates ? (
+      {deed.image?.cachedUrl ? (
         <Image
-          src={`https://tile.openstreetmap.org/${zoom}/${xtile}/${ytile}.png`}
-          alt={`Location ${deed.metadata.location}`}
+          src={deed.image.cachedUrl}
+          alt={deed.name || `Deed #${deed.tokenId}`}
           fill
           className="object-cover"
-          unoptimized
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted" />
+        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <BadgeCheck className="h-12 w-12 text-muted-foreground/50" />
+        </div>
       )}
       {!small && (
         <div className="absolute bottom-2 right-2">
           <div className="w-7 h-7 bg-zinc-900/40 rounded-full border border-white/10 flex items-center justify-center">
             <BadgeCheck className={cn(
               "w-5 h-5",
-              deed.traits.includes("Unvalidated") ? "text-yellow-500" : "text-white"
+              validationStatus === "Unvalidated" ? "text-yellow-500" : "text-white"
             )} />
           </div>
         </div>
@@ -82,14 +81,14 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
 
   if (small) {
     return (
-      <Link href={`/deed/${deed.id}`} className="block">
+      <Link href={`/deed/${deed.tokenId}`} className="block">
         {imageSection}
       </Link>
     );
   }
 
   return (
-    <Link href={`/deed/${deed.id}`} className="block">
+    <Link href={`/deed/${deed.tokenId}`} className="block">
       <Card className="w-full h-[391px] p-2.5 border-white/10">
         {imageSection}
         <div className="h-32 mt-2.5 flex flex-col gap-3">
@@ -98,42 +97,42 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
               <BadgeCheck 
                 className={cn(
                   "w-4 h-4",
-                  deed.traits.includes("Unvalidated") ? "text-yellow-500" : "text-white"
+                  validationStatus === "Unvalidated" ? "text-yellow-500" : "text-white"
                 )} 
               />
               <span className="text-[9px] text-muted-foreground tracking-wider">
-                {deed.owner.slice(0, 6)}...{deed.owner.slice(-4)}
+                {deed.contract?.contractDeployer?.slice(0, 6)}...{deed.contract?.contractDeployer?.slice(-4)}
               </span>
             </div>
             <h3 className="text-sm font-normal line-clamp-2">
-              {deed.metadata.location}
+              {deed.name || deed.raw?.metadata?.name || `Deed #${deed.tokenId}`}
             </h3>
           </div>
 
           <div className="px-3 py-2.5 bg-muted/30 border border-white/10">
             <div className="flex justify-between">
               <div>
-                <div className="text-[0.68vw] text-muted-foreground tracking-wider">
+                <div className="text-xs text-muted-foreground tracking-wider">
                   PRICE
                 </div>
-                <div className="text-[0.74vw] font-medium uppercase">
-                  {deed.metadata.price}
+                <div className="text-sm font-medium uppercase">
+                  $500,000
                 </div>
               </div>
               <div>
-                <div className="text-[0.68vw] text-muted-foreground tracking-wider">
+                <div className="text-xs text-muted-foreground tracking-wider">
                   TYPE
                 </div>
-                <div className="text-[0.68vw] font-medium uppercase">
-                  {deed.traits[0] || "Land"}
+                <div className="text-sm font-medium uppercase">
+                  {propertyType}
                 </div>
               </div>
               <div>
-                <div className="text-[0.68vw] text-muted-foreground tracking-wider">
-                  STATUS
+                <div className="text-xs text-muted-foreground tracking-wider">
+                  LOCATION
                 </div>
-                <div className="text-[0.68vw] font-medium uppercase">
-                  {deed.traits.includes("Unvalidated") ? "Pending" : "Validated"}
+                <div className="text-sm font-medium uppercase">
+                  {state || "N/A"}
                 </div>
               </div>
             </div>
