@@ -1,10 +1,10 @@
 import { createConfig, configureChains } from 'wagmi';
-import { mainnet } from 'wagmi/chains';
+import { mainnet, sepolia } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 
 const { chains, publicClient } = configureChains(
-  [mainnet],
+  [mainnet, sepolia],
   [publicProvider()]
 );
 
