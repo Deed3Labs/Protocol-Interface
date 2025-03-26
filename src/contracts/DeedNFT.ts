@@ -102,26 +102,109 @@ export function useDeedNFT() {
         throw new Error('Contract address is not defined');
       }
 
+      // First get the total supply using contract call
       const nfts = await alchemy.nft.getNftsForContract(CONTRACT_ADDRESS, {
         omitMetadata: false,
         pageSize: 100,
+        tokenUriTimeoutInMs: 10000, // Increase timeout for metadata
       }) as unknown as AlchemyNftsResponse;
       
       console.log('Alchemy Response:', JSON.stringify(nfts, null, 2));
 
-      // If we only got contract info, return empty array
+      // If we only got contract info, try getting NFTs using contract calls
       if (!nfts.nfts || nfts.nfts.length === 0) {
-        return [];
+        const supply = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: [{
+            name: 'totalSupply',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [{ type: 'uint256' }],
+          }],
+          functionName: 'totalSupply',
+        });
+
+        if (!supply) return [];
+
+        // Fetch each NFT individually
+        const tokenIds = Array.from({ length: Number(supply) }, (_, i) => i);
+        const deedPromises = tokenIds.map(async (tokenId) => {
+          try {
+            // Get owner
+            const owner = await publicClient.readContract({
+              address: CONTRACT_ADDRESS,
+              abi: [{
+                name: 'ownerOf',
+                type: 'function',
+                stateMutability: 'view',
+                inputs: [{ type: 'uint256', name: 'tokenId' }],
+                outputs: [{ type: 'address' }],
+              }],
+              functionName: 'ownerOf',
+              args: [BigInt(tokenId)],
+            });
+
+            // Get metadata
+            const metadata = await publicClient.readContract({
+              address: CONTRACT_ADDRESS,
+              abi: [{
+                name: 'getDeedMetadata',
+                type: 'function',
+                stateMutability: 'view',
+                inputs: [{ type: 'uint256', name: 'tokenId' }],
+                outputs: [{ type: 'string' }],
+              }],
+              functionName: 'getDeedMetadata',
+              args: [BigInt(tokenId)],
+            });
+
+            // Parse metadata
+            const parsedMetadata = metadata ? JSON.parse(metadata as string) : {};
+            const location = parsedMetadata.location || '';
+            const price = parsedMetadata.price || '0';
+
+            const deed: DeedNFT = {
+              id: tokenId.toString(),
+              owner: owner as string,
+              description: '',
+              traits: [],
+              location,
+              price,
+              metadata: {
+                location,
+                price,
+              }
+            };
+            return deed;
+          } catch (error) {
+            console.error(`Error fetching deed ${tokenId}:`, error);
+            return null;
+          }
+        });
+
+        const deeds = (await Promise.all(deedPromises)).filter((deed): deed is DeedNFT => deed !== null);
+        return deeds;
       }
 
-      return nfts.nfts.map((nft) => ({
-        id: nft.tokenId,
-        owner: nft.owners[0] || '',
-        description: nft.description || '',
-        traits: nft.attributes.map((attr: AlchemyNftAttribute) => attr.value) || [],
-        location: nft.metadata.location || '',
-        price: nft.metadata.price || '0',
-      }));
+      // If Alchemy returned NFTs, use that data
+      return nfts.nfts.map((nft) => {
+        const location = nft.metadata?.location || '';
+        const price = nft.metadata?.price || '0';
+        const deed: DeedNFT = {
+          id: nft.tokenId,
+          owner: nft.owners[0] || '',
+          description: nft.description || '',
+          traits: nft.attributes?.map((attr: AlchemyNftAttribute) => attr.value) || [],
+          location,
+          price,
+          metadata: {
+            location,
+            price,
+          }
+        };
+        return deed;
+      });
     } catch (error) {
       console.error('Error fetching all deeds:', error);
       return [];
