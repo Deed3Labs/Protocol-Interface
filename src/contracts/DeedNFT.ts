@@ -9,23 +9,38 @@ interface AlchemyNftAttribute {
   trait_type: string;
 }
 
-interface AlchemyNftMetadata {
-  location: string;
-  price: string;
+interface AlchemyNftRawMetadata {
+  name: string;
+  description: string;
+  image: string;
   attributes: AlchemyNftAttribute[];
+  // Add other metadata fields as needed
 }
 
 interface AlchemyNft {
+  contract: {
+    address: string;
+    name: string;
+    symbol: string;
+  };
   tokenId: string;
-  owners: string[];
+  tokenType: string;
+  name: string;
   description: string;
-  metadata: AlchemyNftMetadata;
-  attributes: AlchemyNftAttribute[];
+  tokenUri: string;
+  image: {
+    cachedUrl?: string;
+    originalUrl?: string;
+  };
+  raw: {
+    tokenUri: string;
+    metadata: AlchemyNftRawMetadata;
+  };
 }
 
 interface AlchemyNftsResponse {
   nfts: AlchemyNft[];
-  totalCount: number;
+  pageKey?: string;
 }
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DEEDNFT_CONTRACT_ADDRESS as `0x${string}`;
@@ -102,16 +117,15 @@ export function useDeedNFT() {
         throw new Error('Contract address is not defined');
       }
 
-      // First get the total supply using contract call
       const nfts = await alchemy.nft.getNftsForContract(CONTRACT_ADDRESS, {
         omitMetadata: false,
         pageSize: 100,
-        tokenUriTimeoutInMs: 10000, // Increase timeout for metadata
+        tokenUriTimeoutInMs: 10000,
       }) as unknown as AlchemyNftsResponse;
       
       console.log('Alchemy Response:', JSON.stringify(nfts, null, 2));
 
-      // If we only got contract info, try getting NFTs using contract calls
+      // If we only got contract info or no NFTs, try getting NFTs using contract calls
       if (!nfts.nfts || nfts.nfts.length === 0) {
         const supply = await publicClient.readContract({
           address: CONTRACT_ADDRESS,
@@ -161,19 +175,17 @@ export function useDeedNFT() {
 
             // Parse metadata
             const parsedMetadata = metadata ? JSON.parse(metadata as string) : {};
-            const location = parsedMetadata.location || '';
-            const price = parsedMetadata.price || '0';
-
+            
             const deed: DeedNFT = {
               id: tokenId.toString(),
               owner: owner as string,
-              description: '',
-              traits: [],
-              location,
-              price,
+              description: parsedMetadata.description || '',
+              traits: parsedMetadata.attributes?.map((attr: AlchemyNftAttribute) => attr.value) || [],
+              location: parsedMetadata.name || '',
+              price: parsedMetadata.price || '0',
               metadata: {
-                location,
-                price,
+                location: parsedMetadata.name || '',
+                price: parsedMetadata.price || '0',
               }
             };
             return deed;
@@ -188,14 +200,35 @@ export function useDeedNFT() {
       }
 
       // If Alchemy returned NFTs, use that data
-      return nfts.nfts.map((nft) => {
-        const location = nft.metadata?.location || '';
-        const price = nft.metadata?.price || '0';
+      return Promise.all(nfts.nfts.map(async (nft) => {
+        // Extract traits from raw metadata if available
+        const traits = nft.raw?.metadata?.attributes?.map(attr => attr.value) || [];
+        
+        // Use the name field as location since that's where the address is stored
+        const location = nft.name || nft.raw?.metadata?.name || '';
+        
+        // For now, we'll set a default price since it's not in the metadata
+        const price = '0';
+
+        // Get the owner from the contract
+        const owner = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: [{
+            name: 'ownerOf',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [{ type: 'uint256', name: 'tokenId' }],
+            outputs: [{ type: 'address' }],
+          }],
+          functionName: 'ownerOf',
+          args: [BigInt(nft.tokenId)],
+        });
+
         const deed: DeedNFT = {
           id: nft.tokenId,
-          owner: nft.owners[0] || '',
-          description: nft.description || '',
-          traits: nft.attributes?.map((attr: AlchemyNftAttribute) => attr.value) || [],
+          owner: owner as string,
+          description: nft.description || nft.raw?.metadata?.description || '',
+          traits,
           location,
           price,
           metadata: {
@@ -203,8 +236,9 @@ export function useDeedNFT() {
             price,
           }
         };
+
         return deed;
-      });
+      }));
     } catch (error) {
       console.error('Error fetching all deeds:', error);
       return [];
@@ -214,7 +248,7 @@ export function useDeedNFT() {
   const getDeed = async (tokenId: string) => {
     try {
       const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId) as unknown as AlchemyNft;
-      return nft.description || '';
+      return nft.description || nft.raw?.metadata?.description || '';
     } catch (error) {
       console.error('Error fetching deed:', error);
       throw error;
@@ -224,7 +258,7 @@ export function useDeedNFT() {
   const getDeedTraits = async (tokenId: string) => {
     try {
       const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId) as unknown as AlchemyNft;
-      return nft.attributes.map((attr: AlchemyNftAttribute) => attr.value) || [];
+      return nft.raw?.metadata?.attributes?.map(attr => attr.value) || [];
     } catch (error) {
       console.error('Error fetching deed traits:', error);
       throw error;
@@ -234,9 +268,13 @@ export function useDeedNFT() {
   const getDeedMetadata = async (tokenId: string) => {
     try {
       const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId) as unknown as AlchemyNft;
+      // Use the name field as location since that's where the address is stored
+      const location = nft.name || nft.raw?.metadata?.name || '';
+      // For now, we'll set a default price since it's not in the metadata
+      const price = '0';
       return {
-        location: nft.metadata.location || '',
-        price: nft.metadata.price || '0',
+        location,
+        price,
       };
     } catch (error) {
       console.error('Error fetching deed metadata:', error);
@@ -246,8 +284,20 @@ export function useDeedNFT() {
 
   const getDeedOwner = async (tokenId: string) => {
     try {
-      const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId) as unknown as AlchemyNft;
-      return nft.owners[0] || '';
+      // We need to use the contract directly since Alchemy doesn't provide owner info
+      const owner = await publicClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: [{
+          name: 'ownerOf',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [{ type: 'uint256', name: 'tokenId' }],
+          outputs: [{ type: 'address' }],
+        }],
+        functionName: 'ownerOf',
+        args: [BigInt(tokenId)],
+      });
+      return owner as string;
     } catch (error) {
       console.error('Error fetching deed owner:', error);
       throw error;
@@ -256,8 +306,19 @@ export function useDeedNFT() {
 
   const getDeedBalance = async () => {
     try {
-      const nfts = await alchemy.nft.getNftsForContract(CONTRACT_ADDRESS) as unknown as AlchemyNftsResponse;
-      return BigInt(nfts.totalCount || 0);
+      // Use contract call instead of Alchemy since we need the total supply
+      const supply = await publicClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: [{
+          name: 'totalSupply',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [],
+          outputs: [{ type: 'uint256' }],
+        }],
+        functionName: 'totalSupply',
+      });
+      return BigInt(supply || 0);
     } catch (error) {
       console.error('Error fetching deed balance:', error);
       throw error;
