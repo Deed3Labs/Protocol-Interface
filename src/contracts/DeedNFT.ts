@@ -6,6 +6,9 @@ import { DeedNFT } from '@/types/deed';
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
+console.log('Contract Address:', CONTRACT_ADDRESS);
+console.log('Alchemy API Key:', ALCHEMY_API_KEY ? 'Present' : 'Missing');
+
 // Initialize Alchemy client
 const alchemy = new Alchemy({
   apiKey: ALCHEMY_API_KEY,
@@ -70,13 +73,22 @@ export function useDeedNFT() {
 
   const getAllDeeds = async () => {
     try {
+      if (!CONTRACT_ADDRESS) {
+        throw new Error('Contract address is not defined');
+      }
+
       const nfts = await alchemy.nft.getNftsForContract(CONTRACT_ADDRESS, {
         omitMetadata: false,
+        pageSize: 100,
       });
       
+      if (!nfts.nfts) {
+        return [];
+      }
+
       return nfts.nfts.map((nft) => ({
         id: nft.tokenId,
-        owner: nft.owners[0],
+        owner: nft.owners?.[0] || '',
         description: nft.description || '',
         traits: nft.rawMetadata?.attributes?.map((attr: any) => attr.value) || [],
         location: nft.rawMetadata?.location || '',
