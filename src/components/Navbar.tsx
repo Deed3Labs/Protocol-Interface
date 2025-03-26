@@ -1,5 +1,5 @@
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { injected } from 'wagmi/connectors';
+import { metaMask } from 'wagmi/connectors';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -11,7 +11,7 @@ const Navbar = () => {
   const router = useRouter();
 
   const handleConnect = () => {
-    connect({ connector: injected() });
+    connect({ connector: metaMask() });
   };
 
   const shortenAddress = (address: string) => {
