@@ -7,6 +7,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { NFTAttribute } from "@/types/deed";
 
 interface DeedCardProps {
   deed: DeedNFT;
@@ -20,20 +21,32 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
     setMounted(true);
   }, []);
 
+  // Add type for attributes
+  const attributes = deed.raw?.metadata?.attributes || deed.metadata.attributes || [];
+
+  // Update attribute mapping
+  const attributeMap = attributes.map((attr: NFTAttribute) => ({
+    trait_type: attr.trait_type,
+    value: attr.value
+  }));
+
+  // Use optional chaining for image access
+  const imageUrl = deed.image?.cachedUrl || deed.image?.originalUrl || '';
+
+  // Use id.tokenId when available, fallback to tokenId
+  const tokenId = deed.id?.tokenId || deed.tokenId || '';
+
+  // Use proper name access with fallbacks
+  const name = deed.name || deed.raw?.metadata?.name || deed.title || '';
+
   // Get the validation status from attributes
-  const validationStatus = deed.raw?.metadata?.attributes?.find(
-    attr => attr.trait_type === "Validation Status"
-  )?.value || "Unvalidated";
+  const validationStatus = attributeMap.find(attr => attr.trait_type === "Validation Status")?.value || "Unvalidated";
 
   // Get the property type from attributes
-  const propertyType = deed.raw?.metadata?.attributes?.find(
-    attr => attr.trait_type === "Asset Type"
-  )?.value || "Land";
+  const propertyType = attributeMap.find(attr => attr.trait_type === "Asset Type")?.value || "Land";
 
   // Get location details from attributes
-  const state = deed.raw?.metadata?.attributes?.find(
-    attr => attr.trait_type === "State"
-  )?.value;
+  const state = attributeMap.find(attr => attr.trait_type === "State")?.value;
 
   if (!mounted) {
     return (
@@ -54,10 +67,10 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
       "relative bg-white/5",
       small ? "h-16 w-16" : "h-60"
     )}>
-      {deed.image?.cachedUrl ? (
+      {imageUrl ? (
         <Image
-          src={deed.image.cachedUrl}
-          alt={deed.name || `Deed #${deed.tokenId}`}
+          src={imageUrl}
+          alt={name || `Deed #${tokenId}`}
           fill
           className="object-cover"
         />
@@ -81,14 +94,14 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
 
   if (small) {
     return (
-      <Link href={`/deed/${deed.tokenId}`} className="block">
+      <Link href={`/deed/${tokenId}`} className="block">
         {imageSection}
       </Link>
     );
   }
 
   return (
-    <Link href={`/deed/${deed.tokenId}`} className="block">
+    <Link href={`/deed/${tokenId}`} className="block">
       <Card className="w-full h-[391px] p-2.5 border-white/10">
         {imageSection}
         <div className="h-32 mt-2.5 flex flex-col gap-3">
@@ -105,7 +118,7 @@ export function DeedCard({ deed, small = false }: DeedCardProps) {
               </span>
             </div>
             <h3 className="text-sm font-normal line-clamp-2">
-              {deed.name || deed.raw?.metadata?.name || `Deed #${deed.tokenId}`}
+              {name}
             </h3>
           </div>
 

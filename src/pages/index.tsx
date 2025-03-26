@@ -4,10 +4,44 @@ import { DeedNFT } from '@/types/deed';
 import { DeedCard } from '@/components/DeedCard';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/router';
+import { Nft } from 'alchemy-sdk';
 
 interface NFTAttribute {
   trait_type: string;
   value: string;
+}
+
+// Add this type to match Alchemy's NFT response
+interface AlchemyNFT {
+  uniqueId: string;
+  metadata: {
+    location: any;
+    price: any;
+  };
+  contract: {
+    address: string;
+    contractDeployer: string;
+  };
+  tokenId: string;
+  tokenType: string;
+  name?: string;
+  description?: string;
+  image?: {
+    cachedUrl?: string;
+    originalUrl?: string;
+  };
+  raw?: {
+    tokenUri: string;
+    metadata: {
+      name: string;
+      description: string;
+      image: string;
+      attributes: Array<{
+        trait_type: string;
+        value: string;
+      }>;
+    };
+  };
 }
 
 export default function Home() {
@@ -30,27 +64,56 @@ export default function Home() {
           throw new Error('Invalid response from getAllDeeds');
         }
 
-        const processedDeeds = fetchedDeeds.map((deed, index) => {
-          // Debug log to see the structure of each deed
-          console.log(`Processing deed ${index}:`, deed);
+        // Transform Alchemy NFT to DeedNFT
+        const transformToDeedNFT = (nft: Nft): DeedNFT => {
+          const uniqueId = `${nft.contract.address}-${nft.tokenId}`;
           
-          // Ensure we have valid identifiers
-          if (!deed.contract?.address || !deed.tokenId) {
-            console.warn(`Missing contract address or tokenId for deed ${index}:`, deed);
-          }
-
           return {
-            ...deed,
-            // Use index as fallback if we don't have contract address or tokenId
-            uniqueId: deed.tokenId 
-              ? `${deed.contract?.address || 'unknown'}-${deed.tokenId}`
-              : `fallback-${index}`,
-            metadata: {
-              location: deed.name || deed.raw?.metadata?.name || `Deed #${deed.tokenId || index}`,
-              price: deed.raw?.metadata?.attributes?.find((attr: NFTAttribute) => attr.trait_type === "Price")?.value || "N/A",
+            contract: {
+              address: nft.contract.address,
+              contractDeployer: nft.contract.contractDeployer || ''
             },
+            id: {
+              tokenId: nft.tokenId,
+              tokenMetadata: {
+                tokenType: nft.tokenType
+              }
+            },
+            title: nft.name || `Deed #${nft.tokenId}`,
+            description: nft.description || '',
+            tokenUri: {
+              gateway: nft.raw?.tokenUri || '',
+              raw: nft.raw?.tokenUri || ''
+            },
+            media: [],
+            metadata: {
+              metadata: [],
+              attributes: (nft.raw?.metadata?.attributes || []).map((attr: { trait_type: string; value: string }) => ({
+                trait_type: attr.trait_type,
+                value: attr.value
+              }))
+            },
+            timeLastUpdated: nft.timeLastUpdated || new Date().toISOString(),
+            uniqueId,
+            name: nft.name || `Deed #${nft.tokenId}`,
+            image: {
+              cachedUrl: nft.image?.cachedUrl || '',
+              originalUrl: nft.image?.originalUrl || ''
+            },
+            raw: {
+              tokenUri: nft.raw?.tokenUri || '',
+              metadata: {
+                name: nft.raw?.metadata?.name || '',
+                description: nft.raw?.metadata?.description || '',
+                image: nft.raw?.metadata?.image || '',
+                attributes: nft.raw?.metadata?.attributes || []
+              }
+            },
+            tokenId: nft.tokenId
           };
-        });
+        };
+
+        const processedDeeds = fetchedDeeds.map(transformToDeedNFT);
 
         console.log('Processed deeds:', processedDeeds);
         setDeeds(processedDeeds);

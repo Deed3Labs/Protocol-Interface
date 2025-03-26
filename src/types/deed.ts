@@ -1,43 +1,49 @@
+export interface NFTAttribute {
+  value: string;
+  trait_type: string;
+}
+
 export interface DeedNFT {
-  uniqueId?: string; // Optional unique identifier for React keys
   contract: {
     address: string;
-    name: string;
-    symbol: string;
-    tokenType: string;
     contractDeployer: string;
-    deployedBlockNumber: number;
-    openSeaMetadata: Record<string, any>;
-    spamClassifications: any[];
   };
-  tokenId: string;
-  tokenType: string;
-  name?: string;
-  description?: string;
-  tokenUri: string;
-  image?: {
-    cachedUrl: string;
-    originalUrl: string;
+  id: {
+    tokenId: string;
+    tokenMetadata: {
+      tokenType: string;
+    };
   };
-  raw: {
+  title: string;
+  description: string;
+  tokenUri: {
+    gateway: string;
+    raw: string;
+  };
+  media: Array<{
+    gateway: string;
+    raw: string;
+  }>;
+  metadata: {
+    metadata: any[];
+    attributes: NFTAttribute[];
+  };
+  timeLastUpdated: string;
+  error?: string;
+  uniqueId?: string;
+  name: string;
+  image: {
+    cachedUrl?: string;
+    originalUrl?: string;
+  };
+  raw?: {
     tokenUri: string;
     metadata: {
-      image?: string;
-      external_url?: string;
-      background_color?: string;
-      name?: string;
-      description?: string;
-      attributes?: Array<{
-        value: string;
-        trait_type: string;
-      }>;
+      name: string;
+      description: string;
+      image: string;
+      attributes: NFTAttribute[];
     };
-    error?: string;
   };
-  mint: Record<string, any>;
-  timeLastUpdated: string;
-  metadata?: {
-    location: string;
-    price: string;
-  };
+  tokenId: string; // For backward compatibility
 } 

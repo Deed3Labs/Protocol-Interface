@@ -3,6 +3,7 @@ import { parseEther, createPublicClient, http } from 'viem';
 import { Alchemy, Network } from 'alchemy-sdk';
 import { DeedNFT } from '@/types/deed';
 import { sepolia } from 'viem/chains';
+import { useCallback } from "react";
 
 // Define interfaces for Alchemy response types
 interface AlchemyNftAttribute {
@@ -52,7 +53,7 @@ console.log('Alchemy API Key:', ALCHEMY_API_KEY ? 'Present' : 'Missing');
 
 // Initialize Alchemy client
 const alchemy = new Alchemy({
-  apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
+  apiKey: ALCHEMY_API_KEY,
   network: Network.ETH_SEPOLIA,
 });
 
@@ -140,28 +141,22 @@ export function useDeedNFT() {
     functionName: 'mintWithMetadata',
   });
 
-  const getAllDeeds = async () => {
+  const getAllDeeds = useCallback(async () => {
     try {
-      console.log('Fetching NFTs from contract:', CONTRACT_ADDRESS);
-      const response = await fetch(`/api/alchemy/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}/getNFTsForCollection?contractAddress=${CONTRACT_ADDRESS}&withMetadata=true`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!CONTRACT_ADDRESS) {
+        throw new Error('Contract address is not defined');
       }
-      
-      const data = await response.json();
-      console.log('Alchemy Response:', data);
-      return data.nfts;
+      console.log('Fetching NFTs from contract:', CONTRACT_ADDRESS);
+      const nfts = await alchemy.nft.getNftsForContract(CONTRACT_ADDRESS, {
+        omitMetadata: false,
+      });
+      console.log('Alchemy Response:', nfts);
+      return nfts.nfts;
     } catch (error) {
       console.error('Error fetching NFTs:', error);
       throw error;
     }
-  };
+  }, []);
 
   const getDeed = async (tokenId: string) => {
     try {
