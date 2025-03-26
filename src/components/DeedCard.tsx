@@ -20,23 +20,26 @@ export function DeedCard({ deed }: DeedCardProps) {
     setMounted(true);
   }, []);
 
-  // Parse location coordinates (assuming format is "latitude,longitude")
-  const coordinates = deed.metadata.location.split(',').map(coord => parseFloat(coord.trim()));
-  const [latitude, longitude] = coordinates.length === 2 && !coordinates.some(isNaN) 
-    ? coordinates 
-    : [0, 0]; // Default to [0,0] if invalid coordinates
+  // Default coordinates for Austin, TX if we can't parse the location
+  const defaultCoords = {
+    lat: 30.2672,
+    lng: -97.7431
+  };
+
+  // Since we have an address string instead of coordinates, we'll use default coordinates
+  // In a production app, you would want to use a geocoding service here
+  const [latitude, longitude] = [defaultCoords.lat, defaultCoords.lng];
   
   const zoom = 15;
   
-  // Calculate tile coordinates using lat/lon
+  // Calculate tile coordinates
   const lat_rad = latitude * Math.PI / 180;
   const n = Math.pow(2, zoom);
   const xtile = Math.floor((longitude + 180) / 360 * n);
   const ytile = Math.floor((1 - Math.log(Math.tan(lat_rad) + 1 / Math.cos(lat_rad)) / Math.PI) / 2 * n);
   
-  const isValidCoordinates = !isNaN(xtile) && !isNaN(ytile) && 
-    latitude >= -85 && latitude <= 85 && 
-    longitude >= -180 && longitude <= 180;
+  // Always consider coordinates valid since we're using defaults
+  const isValidCoordinates = true;
 
   // Get first 2 traits
   const displayTraits = deed.traits.slice(0, 2);
