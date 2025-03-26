@@ -1,9 +1,9 @@
 export interface DeedNFT {
-  id: number;
+  id: string;
   owner: string;
   metadata: {
     location: string;
     price: string;
   };
-  traits: Record<string, string>;
+  traits: string[];
 } 
