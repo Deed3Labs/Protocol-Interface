@@ -48,9 +48,7 @@ export function useDeedNFT() {
     functionName: 'totalSupply',
   });
 
-  const { writeContract: mint } = useContractWrite();
-
-  const { writeContract: mintWithMetadata } = useContractWrite();
+  const { writeContract } = useContractWrite();
 
   const getDeed = async (tokenId: string) => {
     if (!publicClient) throw new Error('Public client not initialized');
@@ -146,13 +144,13 @@ export function useDeedNFT() {
 
   return {
     totalSupply,
-    mint: (location: string, price: string) => mint({
+    mint: (location: string, price: string) => writeContract({
       address: CONTRACT_ADDRESS,
       abi: MINT_ABI,
       functionName: 'mint',
       args: [location, parseEther(price)],
     }),
-    mintWithMetadata: (location: string, price: string, traits: string[]) => mintWithMetadata({
+    mintWithMetadata: (location: string, price: string, traits: string[]) => writeContract({
       address: CONTRACT_ADDRESS,
       abi: MINT_WITH_METADATA_ABI,
       functionName: 'mintWithMetadata',
