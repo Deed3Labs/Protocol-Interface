@@ -7,9 +7,11 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background dark:bg-[#0e0e0e]">
       <Navbar />
-      {children}
+      <main className="container mx-auto px-4">
+        {children}
+      </main>
     </div>
   );
 };
