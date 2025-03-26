@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { DeedNFT } from '@/types/deed';
-import { DeedCard } from '@/components/DeedCard';
 import { ListView } from '@/components/ListView';
-import { ViewToggle } from '@/components/ViewToggle';
+import { GridView } from '@/components/GridView';
+import { FilterToolbar } from '@/components/FilterToolbar';
 import { Alchemy, Network, Nft } from 'alchemy-sdk';
 
 const transformToDeedNFT = (nft: Nft): DeedNFT => {
@@ -49,12 +49,12 @@ const transformToDeedNFT = (nft: Nft): DeedNFT => {
 };
 
 export default function Home() {
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [view, setView] = useState<'grid' | 'list'>('list');
   const [deeds, setDeeds] = useState<DeedNFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchDeeds = async () => {
       try {
         const alchemy = new Alchemy({
@@ -100,21 +100,56 @@ export default function Home() {
   }
 
   return (
-    <div className="py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">All Deeds</h1>
-        <ViewToggle view={view} onViewChange={setView} />
-      </div>
+    <main>
+      <div className="grid xl:gap-6" style={{ minHeight: 'calc(-428px + 100vh)' }}>
+        <div className="flex min-w-0 flex-col -mx-2">
+          {/* Filter Toolbar */}
+          <FilterToolbar view={view} onViewChange={setView} />
 
-      {view === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {deeds.map((deed) => (
-            <DeedCard key={deed.id.tokenId} deed={deed} />
-          ))}
+          {/* Main Content */}
+          <div className="h-full">
+            <div className="flex flex-col w-full min-w-0 pb-4">
+              {/* View Container */}
+              <div className="w-full">
+                {view === 'list' ? (
+                  <ListView deeds={deeds} />
+                ) : (
+                  <GridView deeds={deeds} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Action Bar */}
+          <div className="h-bottom-action-bar">
+            <div className="flex items-center left-0 right-scrollbar-size z-action-bar h-bottom-action-bar w-full bg-bg-primary border-t border-border-1 overflow-y-auto lg:left-side-nav lg:w-[calc(100%_-_theme(spacing.side-nav)-theme(spacing.scrollbar-size))] fixed bottom-0 lg:!bottom-page-footer">
+              <div className="mx-auto min-h-0 w-full min-w-0 max-w-screen-4xl px-4 md:px-6 lg:px-4 xl:px-4 2xl:px-6 4xl:px-8 max:px-0 flex items-center">
+                <div className="flex items-center gap-4">
+                  {/* Buy/Sell Toggle */}
+                  <div className="inline-flex rounded-md gap-1 overflow-hidden bg-bg-additional-1 p-0.5">
+                    <button className="relative flex items-center rounded-md py-1 px-3 h-7 text-sm font-medium text-text-primary bg-bg-primary">
+                      Buy
+                    </button>
+                    <button className="relative flex items-center rounded-md py-1 px-3 h-7 text-sm text-text-secondary hover:text-text-primary">
+                      Sell
+                    </button>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3">
+                    <button className="inline-flex items-center whitespace-nowrap rounded-md transition duration-200 justify-center font-medium bg-bg-primary hover:bg-bg-additional-1 focus:bg-bg-additional-1 active:bg-bg-additional-1 border border-border-1 hover:border-border-2 focus:border-border-2 active:border-border-2 h-8 gap-1 px-3 text-sm disabled:pointer-events-none disabled:opacity-40">
+                      Make collection offer
+                    </button>
+                    <button className="inline-flex items-center whitespace-nowrap rounded-md transition duration-200 justify-center font-medium bg-blue-500 hover:bg-blue-600 text-white h-8 gap-1 px-3 text-sm disabled:pointer-events-none disabled:opacity-40">
+                      Buy floor
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      ) : (
-        <ListView deeds={deeds} />
-      )}
-    </div>
+      </div>
+    </main>
   );
 } 
