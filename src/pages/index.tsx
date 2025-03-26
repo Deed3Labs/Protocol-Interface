@@ -3,6 +3,8 @@ import { DeedNFT } from '@/types/deed';
 import { ListView } from '@/components/ListView';
 import { GridView } from '@/components/GridView';
 import { FilterToolbar } from '@/components/FilterToolbar';
+import { CollectionHeader } from '@/components/CollectionHeader';
+import { CollectionStats } from '@/components/CollectionStats';
 import { Alchemy, Network, Nft } from 'alchemy-sdk';
 
 const transformToDeedNFT = (nft: Nft): DeedNFT => {
@@ -54,6 +56,32 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Example collection data
+  const collectionData = {
+    name: 'DeedNFT',
+    isVerified: true,
+    creator: {
+      address: process.env.NEXT_PUBLIC_DEEDNFT_CONTRACT_ADDRESS || '',
+      name: 'DeedNFT Creator',
+      isVerified: true
+    },
+    stats: {
+      totalSupply: deeds.length,
+      floorPrice: 0.1,
+      totalVolume: 100,
+      volume24h: 10,
+      listed: 0.05,
+      owners: {
+        total: 50,
+        unique: 0.8
+      }
+    },
+    bannerImage: '/banner.jpg', // Add your banner image
+    logoImage: '/logo.jpg', // Add your logo image
+    chain: 'Ethereum',
+    category: 'Real Estate'
+  };
+
   React.useEffect(() => {
     const fetchDeeds = async () => {
       try {
@@ -101,6 +129,23 @@ export default function Home() {
 
   return (
     <main>
+      <CollectionHeader
+        name={collectionData.name}
+        isVerified={collectionData.isVerified}
+        creator={collectionData.creator}
+        stats={collectionData.stats}
+        bannerImage={collectionData.bannerImage}
+        logoImage={collectionData.logoImage}
+        chain={collectionData.chain}
+        category={collectionData.category}
+      />
+      <CollectionStats
+        floorPrice={collectionData.stats.floorPrice}
+        totalVolume={collectionData.stats.totalVolume}
+        volume24h={collectionData.stats.volume24h}
+        listed={collectionData.stats.listed}
+        owners={collectionData.stats.owners}
+      />
       <div className="grid xl:gap-6" style={{ minHeight: 'calc(-428px + 100vh)' }}>
         <div className="flex min-w-0 flex-col -mx-2">
           {/* Filter Toolbar */}
