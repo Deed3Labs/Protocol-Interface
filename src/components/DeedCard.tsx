@@ -11,17 +11,21 @@ interface DeedCardProps {
 }
 
 export function DeedCard({ deed }: DeedCardProps) {
-  // Parse location coordinates (assuming format is "longitude,latitude")
+  // Parse location coordinates (assuming format is "latitude,longitude")
   const coordinates = deed.metadata.location.split(',').map(coord => parseFloat(coord.trim()));
-  const [longitude, latitude] = coordinates.length === 2 && !coordinates.some(isNaN) 
+  const [latitude, longitude] = coordinates.length === 2 && !coordinates.some(isNaN) 
     ? coordinates 
     : [0, 0]; // Default to [0,0] if invalid coordinates
   
   const zoom = 15;
-  const x = Math.floor((longitude + 180) / 360 * Math.pow(2, zoom));
-  const y = Math.floor((1 - Math.log(Math.tan(latitude * Math.PI / 180) + 1 / Math.cos(latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
   
-  const isValidCoordinates = !isNaN(x) && !isNaN(y) && 
+  // Calculate tile coordinates using lat/lon
+  const lat_rad = latitude * Math.PI / 180;
+  const n = Math.pow(2, zoom);
+  const xtile = Math.floor((longitude + 180) / 360 * n);
+  const ytile = Math.floor((1 - Math.log(Math.tan(lat_rad) + 1 / Math.cos(lat_rad)) / Math.PI) / 2 * n);
+  
+  const isValidCoordinates = !isNaN(xtile) && !isNaN(ytile) && 
     latitude >= -85 && latitude <= 85 && 
     longitude >= -180 && longitude <= 180;
 
@@ -36,10 +40,11 @@ export function DeedCard({ deed }: DeedCardProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent z-10" />
         {isValidCoordinates ? (
           <Image
-            src={`https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`}
+            src={`https://tile.openstreetmap.org/${zoom}/${xtile}/${ytile}.png`}
             alt={`Location ${deed.metadata.location}`}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-110"
+            unoptimized // Add this to prevent Next.js image optimization
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
