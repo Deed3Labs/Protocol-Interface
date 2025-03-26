@@ -5,6 +5,11 @@ import { DeedCard } from '@/components/DeedCard';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/router';
 
+interface NFTAttribute {
+  trait_type: string;
+  value: string;
+}
+
 export default function Home() {
   const router = useRouter();
   const { getAllDeeds, getDeedBalance } = useDeedNFT();
@@ -31,7 +36,7 @@ export default function Home() {
           uniqueId: `${deed.contract?.address}-${deed.tokenId}`,
           metadata: {
             location: deed.name || deed.raw?.metadata?.name || `Deed #${deed.tokenId}`,
-            price: deed.raw?.metadata?.attributes?.find(attr => attr.trait_type === "Price")?.value || "N/A",
+            price: deed.raw?.metadata?.attributes?.find((attr: NFTAttribute) => attr.trait_type === "Price")?.value || "N/A",
           },
         }));
 

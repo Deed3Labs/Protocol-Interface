@@ -1,9 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@radix-ui/react-select'],
   images: {
-    domains: ['tile.openstreetmap.org'],
+    domains: ['ipfs.io', 'tile.openstreetmap.org'],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/alchemy/:path*',
+        destination: 'https://eth-sepolia.g.alchemy.com/v2/:path*',
+      },
+    ];
   },
 }
 
