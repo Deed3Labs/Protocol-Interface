@@ -1,8 +1,16 @@
 import { useContractRead, useContractWrite, usePublicClient } from 'wagmi';
 import { parseEther } from 'viem';
+import { Alchemy, Network } from 'alchemy-sdk';
 import { DeedNFT } from '@/types/deed';
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
+const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+
+// Initialize Alchemy client
+const alchemy = new Alchemy({
+  apiKey: ALCHEMY_API_KEY,
+  network: Network.SEPOLIA,
+});
 
 const MINT_ABI = [
   {
@@ -51,95 +59,57 @@ export function useDeedNFT() {
   const { writeContract } = useContractWrite();
 
   const getDeed = async (tokenId: string) => {
-    if (!publicClient) throw new Error('Public client not initialized');
-    return publicClient.readContract({
-      address: CONTRACT_ADDRESS,
-      abi: [
-        {
-          name: 'getDeed',
-          type: 'function',
-          stateMutability: 'view',
-          inputs: [{ name: 'tokenId', type: 'uint256' }],
-          outputs: [{ type: 'string' }],
-        },
-      ],
-      functionName: 'getDeed',
-      args: [BigInt(tokenId)],
-    });
+    try {
+      const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId);
+      return nft.rawMetadata?.description || '';
+    } catch (error) {
+      console.error('Error fetching deed:', error);
+      throw error;
+    }
   };
 
   const getDeedTraits = async (tokenId: string) => {
-    if (!publicClient) throw new Error('Public client not initialized');
-    return publicClient.readContract({
-      address: CONTRACT_ADDRESS,
-      abi: [
-        {
-          name: 'getDeedTraits',
-          type: 'function',
-          stateMutability: 'view',
-          inputs: [{ name: 'tokenId', type: 'uint256' }],
-          outputs: [{ type: 'string[]' }],
-        },
-      ],
-      functionName: 'getDeedTraits',
-      args: [BigInt(tokenId)],
-    });
+    try {
+      const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId);
+      return nft.rawMetadata?.attributes?.map((attr: any) => attr.value) || [];
+    } catch (error) {
+      console.error('Error fetching deed traits:', error);
+      throw error;
+    }
   };
 
   const getDeedMetadata = async (tokenId: string) => {
-    if (!publicClient) throw new Error('Public client not initialized');
-    return publicClient.readContract({
-      address: CONTRACT_ADDRESS,
-      abi: [
-        {
-          name: 'getDeedMetadata',
-          type: 'function',
-          stateMutability: 'view',
-          inputs: [{ name: 'tokenId', type: 'uint256' }],
-          outputs: [
-            { name: 'location', type: 'string' },
-            { name: 'price', type: 'uint256' },
-          ],
-        },
-      ],
-      functionName: 'getDeedMetadata',
-      args: [BigInt(tokenId)],
-    });
+    try {
+      const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId);
+      const metadata = nft.rawMetadata || {};
+      return {
+        location: metadata.location || '',
+        price: metadata.price || '0',
+      };
+    } catch (error) {
+      console.error('Error fetching deed metadata:', error);
+      throw error;
+    }
   };
 
   const getDeedOwner = async (tokenId: string) => {
-    if (!publicClient) throw new Error('Public client not initialized');
-    return publicClient.readContract({
-      address: CONTRACT_ADDRESS,
-      abi: [
-        {
-          name: 'ownerOf',
-          type: 'function',
-          stateMutability: 'view',
-          inputs: [{ name: 'tokenId', type: 'uint256' }],
-          outputs: [{ type: 'address' }],
-        },
-      ],
-      functionName: 'ownerOf',
-      args: [BigInt(tokenId)],
-    });
+    try {
+      const nft = await alchemy.nft.getNftMetadata(CONTRACT_ADDRESS, tokenId);
+      return nft.owners?.[0] || '';
+    } catch (error) {
+      console.error('Error fetching deed owner:', error);
+      throw error;
+    }
   };
 
   const getDeedBalance = async () => {
-    if (!publicClient) throw new Error('Public client not initialized');
-    return publicClient.readContract({
-      address: CONTRACT_ADDRESS,
-      abi: [
-        {
-          name: 'totalSupply',
-          type: 'function',
-          stateMutability: 'view',
-          inputs: [],
-          outputs: [{ type: 'uint256' }],
-        },
-      ],
-      functionName: 'totalSupply',
-    });
+    try {
+      const nfts = await alchemy.nft.getContractNfts(CONTRACT_ADDRESS);
+      return BigInt(nfts.nftCount);
+    } catch (error) {
+      console.error('Error fetching deed balance:', error);
+      throw error;
+    }
   };
 
   return {
