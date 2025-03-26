@@ -3,7 +3,7 @@ import { parseEther } from 'viem';
 import { Alchemy, Network } from 'alchemy-sdk';
 import { DeedNFT } from '@/types/deed';
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DEEDNFT_CONTRACT_ADDRESS as `0x${string}`;
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 console.log('Contract Address:', CONTRACT_ADDRESS);
