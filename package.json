@@ -17,7 +17,7 @@
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",
-    "@wagmi/core": "^2.16.7",
+    "@wagmi/core": "^1.4.13",
     "alchemy-sdk": "^3.5.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -29,8 +29,8 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "viem": "^2.23.15",
-    "wagmi": "^2.14.15"
+    "viem": "^1.21.4",
+    "wagmi": "^1.4.13"
   },
   "devDependencies": {
     "@types/node": "^20",
