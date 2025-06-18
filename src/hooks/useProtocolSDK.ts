@@ -1,7 +1,7 @@
-import { ProtocolSDK, createProtocolSDK } from '@deed3labs/protocolsdk';
 import { useEffect, useState } from 'react';
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { mainnet } from 'viem/chains';
+import type { ProtocolSDK } from '@deed3labs/protocolsdk';
 
 export interface UseProtocolSDKConfig {
   rpcUrl?: string;
@@ -29,6 +29,9 @@ export function useProtocolSDK(config: UseProtocolSDKConfig = {}) {
           transport: http(config.rpcUrl)
         }) as unknown as PublicClient;
 
+        // Dynamically import the SDK
+        const { createProtocolSDK } = await import('@deed3labs/protocolsdk');
+        
         const sdkInstance = await createProtocolSDK({
           publicClient,
           network: {
